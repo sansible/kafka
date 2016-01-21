@@ -1,0 +1,35 @@
+---
+
+- name: Install OpenJDK
+  apt:
+    name: openjdk-7-jre-headless
+
+- name: Ensure install folders
+  become: yes
+  file:
+    state: directory
+    owner: "{{ kafka.user }}"
+    group: "{{ kafka.group }}"
+    path: "{{ kafka.tarball_location }}"
+
+- name: Fetch kafka binary package
+  become: yes
+  become_user: "{{ kafka.user }}"
+  get_url:
+    dest: "{{ kafka.tarball_location }}/kafka_{{ kafka.version_scala }}-{{ kafka.version }}.tgz"
+    url: "{{ kafka.apache_mirror }}/kafka/{{ kafka.version }}/kafka_{{ kafka.version_scala }}-{{ kafka.version }}.tgz"
+
+- name: Uncompress the kafka tar
+  become: yes
+  unarchive:
+    copy: no
+    creates: "/opt/kafka_{{ kafka.version_scala }}-{{ kafka.version }}"
+    dest: /opt
+    src: "{{ kafka.tarball_location }}/kafka_{{ kafka.version_scala }}-{{ kafka.version }}.tgz"
+
+- name: Link /opt/kafka to the right version
+  become: yes
+  file:
+    path: /opt/kafka
+    src: "/opt/kafka_{{ kafka.version_scala }}-{{ kafka.version }}"
+    state: link

@@ -1,0 +1,95 @@
+---
+
+- name: Overwrite the start script so the Java Opts can be changed if Kafka 0.8.1.1
+  become: yes
+  lineinfile:
+    dest: "/opt/kafka_2.9.2-{{ kafka.version }}/bin/kafka-server-start.sh"
+    regexp: "^export KAFKA_HEAP_OPTS="
+    line: "export KAFKA_HEAP_OPTS=\"{{ kafka.heap_opts }}\""
+  notify:
+    - restart kafka
+  when: kafka.version == "0.8.1.1"
+
+- name: create upstart config
+  become: yes
+  template:
+    dest: "{{ kafka.upstart_conf }}"
+    owner: root
+    group: root
+    mode: 644
+    src: kafka.conf.j2
+  notify:
+    - restart kafka
+  when: not kafka.use_systemd
+
+- name: create systemd config
+  become: yes
+  template:
+    dest: "{{ kafka.systemd_service }}"
+    owner: root
+    group: root
+    mode: 644
+    src: kafka.service.j2
+  notify:
+    - restart kafka
+  when: kafka.use_systemd
+
+- name: Reload systemd
+  become: yes
+  command: systemctl daemon-reload
+  when: kafka.use_systemd
+
+- name: Create data_dir
+  become: yes
+  file:
+    group: "{{ kafka.group }}"
+    mode: 755
+    owner: "{{ kafka.user }}"
+    path: "{{ kafka.data_dir }}"
+    state: directory
+
+- name: Remove lost+found in the datadir
+  become: yes
+  file:
+    path: "{{ kafka.data_dir }}/lost+found"
+    state: absent
+
+- name: Create log_dir
+  become: yes
+  file:
+    group: "{{ kafka.group }}"
+    mode: 755
+    owner: "{{ kafka.user }}"
+    path: "{{ kafka.log_dir }}"
+    state: directory
+
+- name: link conf_dir to /opt/kafka/config
+  become: yes
+  file:
+    path: "{{ kafka.conf_dir }}"
+    src: /opt/kafka/config
+    state: link
+
+# Setup log4j.properties
+- name: create log4j.properties
+  become: yes
+  template:
+    dest: "{{ kafka.conf_dir }}/log4j.properties"
+    group: "{{ kafka.group }}"
+    mode: 644
+    owner: "{{ kafka.user }}"
+    src: log4j.properties.j2
+  notify:
+    - restart kafka
+
+# Setup server.properties
+- name: create server.properties
+  become: yes
+  template:
+    dest: "{{ kafka.conf_dir }}/server.properties"
+    group: "{{ kafka.group }}"
+    mode: 640
+    owner: "{{ kafka.user }}"
+    src: server.properties.j2
+  notify:
+    - restart kafka

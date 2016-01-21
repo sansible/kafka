@@ -1,0 +1,34 @@
+---
+
+kafka:
+  apache_mirror: http://apache.mirror.anlx.net/
+  auto_create_topics: "false"
+  conf_dir: /home/kafka/etc
+  data_dir: /home/kafka/data
+  group: kafka
+  heap_opts: -Xmx1G -Xms1G
+  hosts: [ localhost ]
+  log_cleanup_interval_mins: 1
+  log_dir: /home/kafka/log
+  log_flush_interval_messages: 10000
+  log_flush_interval_ms: 1000
+  log_level: WARN
+  log_retention_bytes: 104857600  #100 M
+  log_retention_hours: 24
+  log_segment_bytes: 104857600
+  num_io_threads: 2
+  num_network_threads: 2
+  num_partitions: 2
+  port: 9092
+  socket_receive_buffer_bytes: 1048576
+  socket_request_max_bytes: 104857600
+  socket_send_buffer_bytes: 1048576
+  systemd_service: /etc/systemd/system/kafka.service
+  tarball_location: /home/kafka/tmp
+  upstart_conf: /etc/init/kafka.conf
+  use_systemd: no
+  user: kafka
+  version_scala: "2.11"
+  version: "0.9.0.0"
+  zookeeper_connection_timeout_ms: 1000000
+  zookeeper_hosts: [ "localhost" ]

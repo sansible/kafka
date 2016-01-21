@@ -1,0 +1,17 @@
+---
+
+- name: Test GOCD Server
+  hosts: all
+
+  pre_tasks:
+    - name: Update apt
+      become: yes
+      apt:
+        cache_valid_time: 1800
+        update_cache: yes
+      tags:
+        - build
+
+  roles:
+    - name: ansible-city.zookeeper
+    - name: ansible-city.kafka

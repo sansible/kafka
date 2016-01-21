@@ -1,0 +1,4 @@
+---
+
+- name: ansible-city.users_and_group
+  version: 1.0

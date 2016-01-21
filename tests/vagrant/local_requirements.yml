@@ -1,0 +1,7 @@
+---
+
+- name: ansible-city.zookeeper
+  version: v1.0
+
+- name: ansible-city.users_and_groups
+  version: v1.0
