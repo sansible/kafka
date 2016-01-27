@@ -14,6 +14,7 @@ galaxy_info:
 
 dependencies:
   - name: ansible-city.users_and_groups
+    version: v1.0
     users_and_groups:
       groups:
         - name: kafka
