@@ -3,10 +3,10 @@ BRANCH?=$(shell git rev-parse --abbrev-ref HEAD)
 
 all: test clean
 
-watch:
+watch: test_deps
 	while sleep 1; do \
-		find defaults/ handlers/ meta/ tasks/ templates/ \
-		| entr -d make test; \
+		find defaults/ handlers/ meta/ tasks/ templates/ tests/vagrant/test.yml \
+		| entr -d make lint vagrant_up; \
 	done
 
 test: lint test_deps vagrant_up

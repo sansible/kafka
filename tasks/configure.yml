@@ -10,25 +10,25 @@
     - restart kafka
   when: kafka.version == "0.8.1.1"
 
-- name: create upstart config
+- name: Create upstart config
   become: yes
   template:
     dest: "{{ kafka.upstart_conf }}"
     owner: root
     group: root
-    mode: 644
+    mode: 0644
     src: kafka.conf.j2
   notify:
     - restart kafka
   when: not kafka.use_systemd
 
-- name: create systemd config
+- name: Create systemd config
   become: yes
   template:
     dest: "{{ kafka.systemd_service }}"
     owner: root
     group: root
-    mode: 644
+    mode: 0644
     src: kafka.service.j2
   notify:
     - restart kafka
@@ -39,57 +39,35 @@
   command: systemctl daemon-reload
   when: kafka.use_systemd
 
-- name: Create data_dir
+- name: Create log4j.properties
   become: yes
-  file:
-    group: "{{ kafka.group }}"
-    mode: 755
-    owner: "{{ kafka.user }}"
-    path: "{{ kafka.data_dir }}"
-    state: directory
-
-- name: Remove lost+found in the datadir
-  become: yes
-  file:
-    path: "{{ kafka.data_dir }}/lost+found"
-    state: absent
-
-- name: Create log_dir
-  become: yes
-  file:
-    group: "{{ kafka.group }}"
-    mode: 755
-    owner: "{{ kafka.user }}"
-    path: "{{ kafka.log_dir }}"
-    state: directory
-
-- name: link conf_dir to /opt/kafka/config
-  become: yes
-  file:
-    path: "{{ kafka.conf_dir }}"
-    src: /opt/kafka/config
-    state: link
-
-# Setup log4j.properties
-- name: create log4j.properties
-  become: yes
+  become_user: "{{ kafka.user }}"
   template:
-    dest: "{{ kafka.conf_dir }}/log4j.properties"
-    group: "{{ kafka.group }}"
-    mode: 644
-    owner: "{{ kafka.user }}"
+    dest: "/home/{{ kafka.user }}/etc/log4j.properties"
+    mode: 0644
     src: log4j.properties.j2
   notify:
     - restart kafka
 
-# Setup server.properties
-- name: create server.properties
+- name: Create server.properties
   become: yes
+  become_user: "{{ kafka.user }}"
   template:
-    dest: "{{ kafka.conf_dir }}/server.properties"
-    group: "{{ kafka.group }}"
-    mode: 640
-    owner: "{{ kafka.user }}"
+    dest: "/home/{{ kafka.user }}/etc/server.properties"
+    mode: 0640
     src: server.properties.j2
   notify:
     - restart kafka
+
+- name: Ensure Kafka is running
+  become: yes
+  service:
+    name: kafka
+    state: started
+    enabled: yes
+
+- name: Wait for Kafka port
+  wait_for:
+    port: 9092
+    state: started
+    timeout: 10

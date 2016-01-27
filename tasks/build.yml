@@ -1,35 +1,56 @@
 ---
 
 - name: Install OpenJDK
+  become: yes
   apt:
     name: openjdk-7-jre-headless
 
 - name: Ensure install folders
   become: yes
+  become_user: "{{ kafka.user }}"
   file:
     state: directory
-    owner: "{{ kafka.user }}"
-    group: "{{ kafka.group }}"
-    path: "{{ kafka.tarball_location }}"
+    path: "{{ item }}"
+  with_items:
+    - "/home/{{ kafka.user }}/tmp"
+    - "/home/{{ kafka.user }}/log"
+    - "/home/{{ kafka.user }}/data"
+
+- name: Remove lost+found in the datadir
+  become: yes
+  file:
+    path: "/home/{{ kafka.user }}/data/lost+found"
+    state: absent
 
 - name: Fetch kafka binary package
   become: yes
   become_user: "{{ kafka.user }}"
   get_url:
-    dest: "{{ kafka.tarball_location }}/kafka_{{ kafka.version_scala }}-{{ kafka.version }}.tgz"
+    dest: "/home/{{ kafka.user }}/tmp/kafka_{{ kafka.version_scala }}-{{ kafka.version }}.tgz"
     url: "{{ kafka.apache_mirror }}/kafka/{{ kafka.version }}/kafka_{{ kafka.version_scala }}-{{ kafka.version }}.tgz"
 
 - name: Uncompress the kafka tar
   become: yes
+  become_user: "{{ kafka.user }}"
   unarchive:
     copy: no
-    creates: "/opt/kafka_{{ kafka.version_scala }}-{{ kafka.version }}"
-    dest: /opt
-    src: "{{ kafka.tarball_location }}/kafka_{{ kafka.version_scala }}-{{ kafka.version }}.tgz"
+    creates: "/home/{{ kafka.user }}/kafka_{{ kafka.version_scala }}-{{ kafka.version }}"
+    dest: "/home/{{ kafka.user }}"
+    src: "/home/{{ kafka.user }}/tmp/kafka_{{ kafka.version_scala }}-{{ kafka.version }}.tgz"
 
-- name: Link /opt/kafka to the right version
+- name: Link kafka to the right version
   become: yes
+  become_user: "{{ kafka.user }}"
   file:
-    path: /opt/kafka
-    src: "/opt/kafka_{{ kafka.version_scala }}-{{ kafka.version }}"
+    path: /home/{{ kafka.user }}/kafka
+    src: "/home/{{ kafka.user }}/kafka_{{ kafka.version_scala }}-{{ kafka.version }}"
+    state: link
+
+- name: link config dir
+  become: yes
+  become_user: "{{ kafka.user }}"
+  file:
+    force: yes
+    path: "/home/{{ kafka.user }}/etc"
+    src: "/home/{{ kafka.user }}/kafka/config"
     state: link
