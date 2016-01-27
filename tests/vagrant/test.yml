@@ -1,6 +1,6 @@
 ---
 
-- name: Test GOCD Server
+- name: Test Kafka Server
   hosts: all
 
   pre_tasks:
@@ -15,3 +15,23 @@
   roles:
     - name: ansible-city.zookeeper
     - name: ansible-city.kafka
+      kafka:
+        heap_opts: "-Xmx512M -Xms512M"
+
+  post_tasks:
+    - name: Create topic
+      become: yes
+      become_user: "{{ kafka.user }}"
+      command: >
+        /home/kafka/kafka/bin/kafka-topics.sh
+        --create
+        --topic testtopic{{ ansible_date_time.epoch }}
+        --partitions 1
+        --replication-factor 1
+        --zookeeper localhost
+      tags:
+        - assert
+      register: result
+      until: result.rc == 0
+      retries: 2
+      delay: 10
