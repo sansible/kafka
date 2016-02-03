@@ -1,6 +1,6 @@
 ---
 
-- name: Test Kafka Server
+- name: Test Kafka role
   hosts: all
 
   pre_tasks:
@@ -13,8 +13,8 @@
         - build
 
   roles:
-    - name: ansible-city.zookeeper
-    - name: ansible-city.kafka
+    - role: ansible-city.zookeeper
+    - role: ansible-city.kafka
       kafka:
         heap_opts: "-Xmx512M -Xms512M"
 

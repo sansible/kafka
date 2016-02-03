@@ -14,7 +14,7 @@ before_install:
 
 install:
   # Install Ansible.
-  - pip install ansible
+  - pip install ansible==1.9.4
 
 script:
   # Install Role Dependencies
