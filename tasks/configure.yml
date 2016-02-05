@@ -1,14 +1,23 @@
 ---
 
+# Needed to ensure some services start properly
+- name: Set hostname
+  become: yes
+  lineinfile:
+    dest: /etc/hosts
+    line: "127.0.0.1 {{ ansible_hostname }}"
+  notify:
+    - restart kafka
+
 - name: Overwrite the start script so the Java Opts can be changed if Kafka 0.8.1.1
   become: yes
   lineinfile:
-    dest: "/opt/kafka_2.9.2-{{ kafka.version }}/bin/kafka-server-start.sh"
+    dest: "/opt/kafka_2.9.2-{{ kafka.version_kafka }}/bin/kafka-server-start.sh"
     regexp: "^export KAFKA_HEAP_OPTS="
     line: "export KAFKA_HEAP_OPTS=\"{{ kafka.heap_opts }}\""
   notify:
     - restart kafka
-  when: kafka.version == "0.8.1.1"
+  when: kafka.version_kafka == "0.8.1.1"
 
 - name: Create upstart config
   become: yes
@@ -68,6 +77,6 @@
 
 - name: Wait for Kafka port
   wait_for:
-    port: 9092
+    port: "{{ kafka.port }}"
     state: started
-    timeout: 10
+    timeout: 30

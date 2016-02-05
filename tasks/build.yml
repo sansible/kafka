@@ -26,24 +26,24 @@
   become: yes
   become_user: "{{ kafka.user }}"
   get_url:
-    dest: "/home/{{ kafka.user }}/tmp/kafka_{{ kafka.version_scala }}-{{ kafka.version }}.tgz"
-    url: "{{ kafka.apache_mirror }}/kafka/{{ kafka.version }}/kafka_{{ kafka.version_scala }}-{{ kafka.version }}.tgz"
+    dest: "/home/{{ kafka.user }}/tmp/kafka_{{ kafka.version_scala }}-{{ kafka.version_kafka }}.tgz"
+    url: "{{ kafka.apache_mirror }}/kafka/{{ kafka.version_kafka }}/kafka_{{ kafka.version_scala }}-{{ kafka.version_kafka }}.tgz"
 
 - name: Uncompress the kafka tar
   become: yes
   become_user: "{{ kafka.user }}"
   unarchive:
     copy: no
-    creates: "/home/{{ kafka.user }}/kafka_{{ kafka.version_scala }}-{{ kafka.version }}"
+    creates: "/home/{{ kafka.user }}/kafka_{{ kafka.version_scala }}-{{ kafka.version_kafka }}"
     dest: "/home/{{ kafka.user }}"
-    src: "/home/{{ kafka.user }}/tmp/kafka_{{ kafka.version_scala }}-{{ kafka.version }}.tgz"
+    src: "/home/{{ kafka.user }}/tmp/kafka_{{ kafka.version_scala }}-{{ kafka.version_kafka }}.tgz"
 
 - name: Link kafka to the right version
   become: yes
   become_user: "{{ kafka.user }}"
   file:
-    path: /home/{{ kafka.user }}/kafka
-    src: "/home/{{ kafka.user }}/kafka_{{ kafka.version_scala }}-{{ kafka.version }}"
+    path: "/home/{{ kafka.user }}/kafka"
+    src: "/home/{{ kafka.user }}/kafka_{{ kafka.version_scala }}-{{ kafka.version_kafka }}"
     state: link
 
 - name: link config dir
