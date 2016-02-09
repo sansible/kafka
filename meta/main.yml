@@ -13,7 +13,7 @@ galaxy_info:
     - development
 
 dependencies:
-  - role: ansible-city.users_and_groups
+  - role: sansible.users_and_groups
     version: v1.0
     users_and_groups:
       groups:

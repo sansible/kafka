@@ -13,8 +13,8 @@
         - build
 
   roles:
-    - role: ansible-city.zookeeper
-    - role: ansible-city.kafka
+    - role: sansible.zookeeper
+    - role: sansible.kafka
 
   post_tasks:
     - name: Create topic
