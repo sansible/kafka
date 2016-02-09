@@ -1,7 +1,7 @@
 # Kafka
 
-Master: [![Build Status](https://travis-ci.org/ansible-city/kafka.svg?branch=master)](https://travis-ci.org/ansible-city/kafka)  
-Develop: [![Build Status](https://travis-ci.org/ansible-city/kafka.svg?branch=develop)](https://travis-ci.org/ansible-city/kafka)
+Master: [![Build Status](https://travis-ci.org/sansible/kafka.svg?branch=master)](https://travis-ci.org/sansible/kafka)  
+Develop: [![Build Status](https://travis-ci.org/sansible/kafka.svg?branch=develop)](https://travis-ci.org/sansible/kafka)
 
 * [ansible.cfg](#ansible-cfg)
 * [Installation and Dependencies](#installation-and-dependencies)
@@ -31,14 +31,14 @@ hash_behaviour = merge
 
 ## Installation and Dependencies
 
-This role will install `ansible-city.users_and_groups` for managing `kafka`
+This role will install `sansible.users_and_groups` for managing `kafka`
 user.
 
-To install run `ansible-galaxy install ansible-city.kafka` or add this to your
+To install run `ansible-galaxy install sansible.kafka` or add this to your
 `roles.yml`
 
 ```YAML
-- name: ansible-city.kafka
+- name: sansible.kafka
   version: v1.0
 ```
 
@@ -74,7 +74,7 @@ This role uses two tags: **build** and **configure**
         - build
 
   roles:
-    - name: ansible-city.kafka
+    - name: sansible.kafka
       kafka:
         zookeeper_hosts:
           - my.zookeeper.host
@@ -97,6 +97,6 @@ same machine.
         - build
 
   roles:
-    - name: ansible-city.zookeeper
-    - name: ansible-city.kafka
+    - name: sansible.zookeeper
+    - name: sansible.kafka
 ```

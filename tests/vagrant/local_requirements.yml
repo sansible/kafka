@@ -1,7 +1,7 @@
 ---
 
-- src: ansible-city.zookeeper
+- src: sansible.zookeeper
   version: v1.0
 
-- src: ansible-city.users_and_groups
+- src: sansible.users_and_groups
   version: v1.0
