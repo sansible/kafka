@@ -1,27 +1,21 @@
 ##
 # {{ ansible_managed }}
 
-##
-# Server Basics
+############################# Server Basics #############################
+
 # The id of the broker. This must be set to a unique integer for each broker.
-{% for url in kafka.hosts %}
-  {%- set url_host = url.split(':')[0] -%}
-  {%- if url_host == ansible_fqdn or url_host in ansible_all_ipv4_addresses
-         or ( kafka.id is defined and loop.index0 == kafka.id | int ) -%}
-broker.id={{ loop.index0 }}
+# If left off one is auto-assigned
+{% if kafka.broker_id is defined %}
+broker.id={{ kafka.broker_id }}
+{% endif %}
 
 ############################# Socket Server Settings #############################
 
-# The port the socket server listens on
-port={{ url.split(':')[1] }}
-  {% endif %}
-{% endfor %}
+port={{ kafka.port }}
 
 # Hostname the broker will bind to. If not set, the server will bind to all interfaces
 {% if kafka.listen_address is defined %}
 host.name={{ kafka.listen_address }}
-{% else %}
-#host.name=localhost
 {% endif %}
 
 {# The number of threads handling network requests #}

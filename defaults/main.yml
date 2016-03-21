@@ -7,8 +7,6 @@ kafka:
   data_dir: /home/kafka/data
   group: kafka
   heap_opts: "-Xmx{{ (ansible_memtotal_mb / 2) | int }}m -Xms{{ (ansible_memtotal_mb / 2) | int }}m"
-  hosts:
-    - localhost
   log_cleanup_interval_mins: 1
   log_dir: /home/kafka/log
   log_flush_interval_messages: 10000
