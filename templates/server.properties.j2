@@ -18,6 +18,11 @@ port={{ kafka.port }}
 host.name={{ kafka.listen_address }}
 {% endif %}
 
+{% if kafka.advertised_host_name is defined %}
+# Hostname the broker will advertise to Zookeeper
+advertised.host.name={{ kafka.advertised_host_name }}
+{% endif %}
+
 {# The number of threads handling network requests #}
 num.network.threads={{ kafka.num_network_threads }}
 
@@ -43,6 +48,9 @@ auto.create.topics.enable={{ kafka.auto_create_topics }}
 # The number of logical partitions per topic per server. More partitions allow greater parallelism
 # for consumption, but also mean more files.
 num.partitions={{ kafka.num_partitions }}
+
+# Set the default replication factor, set to this to the number of kafka brokers in your cluster
+default.replication.factor={{ kafka.default_replication_factor }}
 
 ############################# Log Flush Policy #############################
 
