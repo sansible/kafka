@@ -5,8 +5,10 @@
 
 # The id of the broker. This must be set to a unique integer for each broker.
 # If left off one is auto-assigned
-{% if kafka.broker_id is defined %}
-broker.id={{ kafka.broker_id }}
+{% if kafka.aws_cluster_autodiscover.data is defined %}
+broker.id={{ kafka.aws_cluster_autodiscover.data.id }}
+{% else %}
+broker.id={{ kafka.id }}
 {% endif %}
 
 ############################# Socket Server Settings #############################
@@ -16,6 +18,12 @@ port={{ kafka.port }}
 # Hostname the broker will bind to. If not set, the server will bind to all interfaces
 {% if kafka.listen_address is defined %}
 host.name={{ kafka.listen_address }}
+{% endif %}
+
+{% if kafka.aws_cluster_autodiscover.data is defined %}
+advertised.host.name={{ kafka.aws_cluster_autodiscover.data.hostname }}
+{% elif kafka.advertised_host_name is defined %}
+advertised.host.name={{ kafka.advertised_host_name }}
 {% endif %}
 
 {# The number of threads handling network requests #}
@@ -43,6 +51,9 @@ auto.create.topics.enable={{ kafka.auto_create_topics }}
 # The number of logical partitions per topic per server. More partitions allow greater parallelism
 # for consumption, but also mean more files.
 num.partitions={{ kafka.num_partitions }}
+
+# Set the default replication factor, set to this to the number of kafka brokers in your cluster
+default.replication.factor={{ kafka.default_replication_factor }}
 
 ############################# Log Flush Policy #############################
 

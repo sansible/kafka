@@ -9,6 +9,33 @@
   notify:
     - restart kafka
 
+- name: Copy AWS autodiscover script
+  become: yes
+  become_user: "{{ kafka.user }}"
+  copy:
+    src: aws_cluster_autodiscover
+    dest: "/home/{{ kafka.user }}/bin/aws_cluster_autodiscover"
+    owner: "{{ kafka.user }}"
+    group: "{{ kafka.group }}"
+    mode: 0750
+  when: kafka.aws_cluster_autodiscover.enabled
+
+- name: Run AWS autodiscover script and grab cluster settings
+  become: yes
+  become_user: "{{ kafka.user }}"
+  command: "./aws_cluster_autodiscover {{ kafka.aws_cluster_autodiscover.hosts | join(',') }} {{ kafka.aws_cluster_autodiscover.r53_zone_id }} \"{{ kafka.aws_cluster_autodiscover.lookup_filter }}\" {{ kafka.aws_cluster_autodiscover.id_tag_name}}"
+  args:
+    chdir: "/home/{{ kafka.user }}/bin"
+  register: aws_cluster_autodiscover
+  when: kafka.aws_cluster_autodiscover.enabled
+
+- name: Set cluster facts based on AWS autodiscover script output
+  set_fact:
+    kafka:
+      aws_cluster_autodiscover:
+        data: "{{ aws_cluster_autodiscover.stdout | from_json }}"
+  when: kafka.aws_cluster_autodiscover.enabled
+
 - name: Overwrite the start script so the Java Opts can be changed if Kafka 0.8.1.1
   become: yes
   lineinfile:
@@ -74,9 +101,12 @@
     name: kafka
     state: started
     enabled: yes
+    
+- name: Flush handlers to ensure Kafka is up to date
+  meta: flush_handlers
 
 - name: Wait for Kafka port
   wait_for:
     port: "{{ kafka.port }}"
     state: started
-    timeout: 30
+    timeout: 120
