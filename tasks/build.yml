@@ -12,6 +12,7 @@
     state: directory
     path: "{{ item }}"
   with_items:
+    - "/home/{{ kafka.user }}/bin"
     - "/home/{{ kafka.user }}/tmp"
     - "/home/{{ kafka.user }}/log"
     - "/home/{{ kafka.user }}/data"

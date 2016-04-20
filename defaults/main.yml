@@ -5,8 +5,10 @@ kafka:
   auto_create_topics: "false"
   conf_dir: /home/kafka/etc
   data_dir: /home/kafka/data
+  default_replication_factor: 1
   group: kafka
   heap_opts: "-Xmx{{ (ansible_memtotal_mb / 2) | int }}m -Xms{{ (ansible_memtotal_mb / 2) | int }}m"
+  id: 1
   log_cleanup_interval_mins: 1
   log_dir: /home/kafka/log
   log_flush_interval_messages: 10000
@@ -32,3 +34,14 @@ kafka:
   zookeeper_connection_timeout_ms: 1000000
   zookeeper_hosts:
     - localhost
+
+  # If enabled AWS will be used to figure out which host and id should be used
+  # Note that you must install the AWS CLI tools on the machine to use this feature
+  aws_cluster_autodiscover:
+    enabled: false
+    hosts: []
+    # Tag to store the ID/index of the host that gets assigned to a machine
+    id_tag_name: KafkaID
+    # AWS CLI lookup filter
+    lookup_filter: "Name=tag:Environment,Values=dev Name=tag:Role,Values=kafka"
+    r53_zone_id: ~
