@@ -9,6 +9,7 @@ kafka:
   group: kafka
   heap_opts: "-Xmx{{ (ansible_memtotal_mb / 2) | int }}m -Xms{{ (ansible_memtotal_mb / 2) | int }}m"
   id: 1
+  jmx_port: 9999
   log_cleanup_interval_mins: 1
   log_dir: /home/kafka/log
   log_flush_interval_messages: 10000
@@ -24,10 +25,8 @@ kafka:
   socket_receive_buffer_bytes: 1048576
   socket_request_max_bytes: 104857600
   socket_send_buffer_bytes: 1048576
-  systemd_service: /etc/systemd/system/kafka.service
   tarball_location: /home/kafka/tmp
   upstart_conf: /etc/init/kafka.conf
-  use_systemd: no
   user: kafka
   version_kafka: "0.9.0.0"
   version_scala: "2.11"

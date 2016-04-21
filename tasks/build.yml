@@ -55,3 +55,19 @@
     path: "/home/{{ kafka.user }}/etc"
     src: "/home/{{ kafka.user }}/kafka/config"
     state: link
+
+- name: Create Kafka service
+  become: yes
+  template:
+    dest: "{{ kafka.upstart_conf }}"
+    owner: root
+    mode: 0644
+    src: kafka.conf.j2
+  notify:
+    - restart kafka
+    
+- name: Ensure Kafka runs on boot
+  become: yes
+  service:
+    enabled: yes
+    name: kafka
