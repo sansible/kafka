@@ -1,5 +1,12 @@
 ---
 
+group: stable
+dist: trusty
+branches:
+  only:
+    - develop
+    - master
+
 language: python
 python: "2.7"
 
@@ -8,13 +15,19 @@ branches:
     - develop
     - master
 
+env:
+  - ANSIBLE_INSTALL_VERSION=1.9.4
+  - ANSIBLE_INSTALL_VERSION=2.0.0.2
+  - ANSIBLE_INSTALL_VERSION=2.0.2.0
+  - ANSIBLE_INSTALL_VERSION=2.1.1.0
+
 before_install:
   # Make sure everything's up to date.
   - sudo apt-get update -qq
 
 install:
   # Install Ansible.
-  - pip install ansible==1.9.4
+  - pip install ansible==${ANSIBLE_INSTALL_VERSION}
 
 script:
   # Install Role Dependencies
@@ -37,3 +50,6 @@ script:
     | grep -q 'changed=0.*failed=0'
     && (echo 'Idempotence test: pass' && exit 0)
     || (echo 'Idempotence test: fail' && exit 1)
+
+notifications:
+  webhooks: https://galaxy.ansible.com/api/v1/notifications/
