@@ -52,6 +52,10 @@ function main {
 	local AVAILABLE_IDS=( )
 	local CLAIMED_IDS=( )
 	local UNCLAIMED_IDS=( )
+	local ID_CHECK=""
+
+	# Hacky random sleep in an attempt to avoid id clashes in a cluster
+	sleep $[ ( $RANDOM % 60 )  + 1 ]s
 
 	INSTANCE_ID=$( curl -f -s http://169.254.169.254/latest/meta-data/instance-id/ )
 	INSTANCE_IP=$( curl -f -s http://169.254.169.254/latest/meta-data/local-ipv4/ )
@@ -77,6 +81,7 @@ function main {
 		--filters ${LOOKUP_FILTER} Name=instance-state-name,Values=running \
 		--output text \
 		--query "Reservations[*].Instances[*].Tags[*] | [] | [] | [?Key=='${ID_TAG_NAME}'] | [*].Value" ) )
+
 	if [[ "${#CLAIMED_IDS[@]}" -gt 0 ]]; then
 		# Use comm to diff the ID arrays
 		UNCLAIMED_IDS=( $( comm -13 \
@@ -95,6 +100,26 @@ function main {
 		CLAIMED_ID="1"
 	fi
 
+	# Double check that ID is still free, if not fail so caller can retry if desired
+	ID_CHECK=$( aws ec2 describe-instances \
+		--region ${INSTANCE_REGION} \
+		--filters ${LOOKUP_FILTER} \
+			Name=instance-state-name,Values=running \
+			Name=tag:${ID_TAG_NAME},Values=${CLAIMED_ID} \
+		--output text \
+		--query "Reservations[*].Instances[*].InstanceId" )
+	if [[ -n "${ID_CHECK}" ]]; then
+		die "Attempted to claim ID but it was taken during discovery"
+	fi
+
+	# Claim the ID
+	aws ec2 create-tags \
+		--region ${INSTANCE_REGION} \
+		--resources ${INSTANCE_ID} \
+		--tags Key=${ID_TAG_NAME},Value=${CLAIMED_ID} \
+		> /dev/null 2>&1 \
+		|| die "Failed to update Tag entry for with ID ${CLAIMED_ID}"
+
 	CLAIMED_HOST="${HOSTS[$CLAIMED_ID - 1]}"
 
 	# Claim the hostname
@@ -104,14 +129,6 @@ function main {
 		--change-batch "{ \"Changes\": [ { \"Action\": \"UPSERT\", \"ResourceRecordSet\": { \"Name\": \"${CLAIMED_HOST}\", \"Type\": \"A\", \"TTL\": 300, \"ResourceRecords\": [ { \"Value\": \"${INSTANCE_IP}\" } ] } } ] }" \
 		> /dev/null 2>&1 \
 		|| die "Failed to update R53 entry for ${CLAIMED_HOST}"
-
-	# Claim the ID
-	aws ec2 create-tags \
-		--region ${INSTANCE_REGION} \
-		--resources ${INSTANCE_ID} \
-		--tags Key=${ID_TAG_NAME},Value=${CLAIMED_ID} \
-		> /dev/null 2>&1 \
-		|| die "Failed to update Tag entry for with ID ${CLAIMED_ID}"
 
 	output "${CLAIMED_ID}" "${CLAIMED_HOST}" "Machine had no ID, claimed ID and R53 entry"
 }
