@@ -27,6 +27,9 @@
   args:
     chdir: "/home/{{ kafka.user }}/bin"
   register: aws_cluster_autodiscover
+  until: aws_cluster_autodiscover | success
+  retries: 2
+  delay: 15
   when: kafka.aws_cluster_autodiscover.enabled
 
 - name: Set cluster facts based on AWS autodiscover script output
