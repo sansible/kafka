@@ -1,0 +1,24 @@
+#!/bin/bash
+
+KAFKA="/home/kafka"
+BIN="$KAFKA/bin"
+
+PIDS=$(ps ax | grep -i 'kafka\.Kafka' | grep java | grep -v grep | awk '{print $1}')
+
+stop_kafka() {
+	if [ -z "$PIDS" ]; then
+		echo "No kafka server to stop"
+		exit 1
+	else 
+		echo "Prepare Kafka to stop"
+		/bin/bash $BIN/kafka_maintenance_at_stop && /bin/bash $BIN/remove_dns_record
+		echo "Kafka maintenance Done"
+		kill -s TERM $PIDS
+	fi
+}
+
+main() {
+	stop_kafka
+}
+
+main

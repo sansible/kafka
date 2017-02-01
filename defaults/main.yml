@@ -4,6 +4,9 @@ kafka:
   apache_mirror: http://apache.mirror.anlx.net/
   auto_create_topics: "false"
   conf_dir: /home/kafka/etc
+  controlled_shutdown_enable: true
+  controlled_shutdown_max_retries: 3
+  controlled_shutdown_retry_backoff_ms: 2000
   data_dir: /home/kafka/data
   default_replication_factor: 1
   group: kafka
@@ -30,6 +33,7 @@ kafka:
   user: kafka
   version_kafka: "0.9.0.0"
   version_scala: "2.11"
+  wait_for_kafka_port: 60
   zookeeper_connection_timeout_ms: 1000000
   zookeeper_hosts:
     - localhost

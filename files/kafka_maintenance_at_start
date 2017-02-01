@@ -1,0 +1,117 @@
+#!/bin/bash
+
+CO="__consumer_offsets"
+PC="PartitionCount"
+RF="ReplicationFactor"
+KAFKA="/home/kafka"
+BIN="$KAFKA/kafka/bin"
+LOG="$KAFKA/log/shutdown.log"
+SYNC_STATUS="$KAFKA/etc/syncStatus"
+TMP_DIR="/tmp/kafka"
+ZK_URL="zookeeper.app.internal"
+ZK_PORT="2181"
+BROKERS_ALL_FILE="brokers_all_file"
+TOPICS_FILE="topics_file"
+broker_id="cat $KAFKA/etc/brokerId" # This node
+
+prepare() {
+	printf "Preparation "
+	if [ ! -d $TMP_DIR ]; then mkdir $TMP_DIR && printf "Done\n"; fi
+}
+
+first_check() {
+	printf "First check "
+	brokers_all=$(echo "ls /brokers/ids"|$BIN/zookeeper-shell.sh $ZK_URL:$ZK_PORT|tail -1| sed 's/,//g'| sed 's/\[//'| sed 's/\]//' 2>/dev/null > $TMP_DIR/$BROKERS_ALL_FILE)
+	topics_description=$($BIN/kafka-topics.sh --describe --zookeeper $ZK_URL:$ZK_PORT |grep -v $CO 2>/dev/null > $TMP_DIR/$TOPICS_FILE)
+	if [[ -f $TMP_DIR/$BROKERS_ALL_FILE ]] && [[ -f $TMP_DIR/$TOPICS_FILE ]]; then
+		if ! [[ -s $TMP_DIR/$TOPICS_FILE ]]; then
+			printf "Nothing to replicate. Exit\n"
+			echo "READY" > $SYNC_STATUS
+			exit
+		fi
+		read -a brokers <<< $(cat $TMP_DIR/$BROKERS_ALL_FILE)
+		printf "Done\n"
+	else
+		echo "Files don't exist"
+		sleep 1s
+		first_check
+	fi
+}
+
+collect_info() {
+	printf "Collect info "
+	numbers='[0-9]'
+	if ! [[ $(cat $TMP_DIR/$BROKERS_ALL_FILE) =~ $numbers ]] ; then
+		echo "error: Not a number"
+		echo "Is Zookeeper available? Checking again..."
+		sleep 2s
+	else
+		printf "Done\n"
+		echo "Available brokers: ${brokers[@]}"
+	fi
+}
+
+prepare_json() {
+	topics=$(grep $PC $TMP_DIR/$TOPICS_FILE|awk '{print $1}' |cut -f2 -d ":")
+	printf "Topics:"
+	for t in $topics; do
+		topic_partitions=$(grep $t $TMP_DIR/$TOPICS_FILE| head -1| grep $PC| awk '{print $2}'| cut -f2 -d ":")
+		replication_factor=$(grep $t $TMP_DIR/$TOPICS_FILE| head -1|grep $RF| awk '{print $3}'| cut -f2 -d ":")
+		printf "\n"
+		printf "$t" # topic
+		printf "\t\tTopic partitions: $topic_partitions\n"
+		printf "\t\t\tReplication factor: $replication_factor\n"
+		echo "{\"version\":1,\"partitions\":[" > $TMP_DIR/$t
+		# Create replicas
+		declare -a matrix
+		num_columns=$topic_partitions
+		num_rows=$replication_factor
+		index=0
+		f1="%$((${#num_rows}+1))s "
+		f2="%1s"
+		for (( i=1; i<=num_columns; i++ )) do
+			partition_num=$(($i-1))
+			printf "{\"topic\":\"$t\",\"partition\":"$partition_num",\"replicas\":["  >> $TMP_DIR/$t
+			printf "$f1" #$i 
+			for (( j=1; j<=num_rows; j++ )) do
+				lenght=${#brokers[@]}
+				if [[ "$index" -ge $lenght ]]; then
+					((index*=0))
+				fi
+				matrix[$i,$j]=${brokers[$index]}
+				((index++))
+				printf "$f2," ${matrix[$i,$j]} >> $TMP_DIR/$t
+				if [[ "$j" -ge "$num_rows" ]]; then
+					sed -i '$s/,$//' $TMP_DIR/$t
+				fi
+			done
+		printf "]},\n" >> $TMP_DIR/$t
+		done
+	sed -i '$s/,$/\]\}/' $TMP_DIR/$t
+	done
+	printf "\n"
+	printf "Prepare Json file Done\n"
+}
+
+assign_partitions () {
+	printf "Assign partitions "
+	for t in ${topics}; do
+		$BIN/kafka-reassign-partitions.sh --zookeeper $ZK_URL:$ZK_PORT --reassignment-json-file $TMP_DIR/$t --execute >> $LOG
+		echo "READY" > $SYNC_STATUS
+	done
+	printf "Done\n"
+}
+
+clean () {
+	rm -rf $TMP_DIR && printf "Temp dir removed\n"
+}
+
+main () {
+	prepare
+	first_check
+	collect_info
+	prepare_json
+	assign_partitions
+}
+
+main

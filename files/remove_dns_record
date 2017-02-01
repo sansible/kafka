@@ -1,0 +1,29 @@
+#!/bin/bash
+
+TMP_DIR=/tmp
+INSTANCE_DETAILS_FILE="$TMP_DIR/instance_details_file"
+
+remove_dns_record() {
+	instance_details=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document -o $INSTANCE_DETAILS_FILE)
+	hosted_zone=$(cat /home/kafka/etc/hostedZone)
+	hostname=$(cat /home/kafka/etc/hostname)
+	broker_id=$(cat /home/kafka/etc/brokerId)
+	
+	readarray -t aws_values < <(grep '"' $INSTANCE_DETAILS_FILE | cut -d '"' -f4)
+	
+	echo ${aws_values[@]}
+	echo "Hosted Zone" ${hosted_zone}
+	echo "Hostname" ${hostname}
+	echo "Region" ${aws_values[4]}
+	
+	/usr/local/bin/aws route53 change-resource-record-sets \
+		--region ${aws_values[4]} \
+		--hosted-zone-id ${hosted_zone} \
+		--change-batch "{ \"Changes\": [ { \"Action\": \"DELETE\", \"ResourceRecordSet\": { \"Name\": \"${hostname}\", \"Type\": \"A\", \"TTL\": 300, \"ResourceRecords\": [ { \"Value\": \"${aws_values[1]}\" } ] } } ] }"
+}
+
+main() {
+	remove_dns_record
+}
+
+main

@@ -11,6 +11,11 @@ broker.id={{ kafka.aws_cluster_autodiscover.data.id }}
 broker.id={{ kafka.id }}
 {% endif %}
 
+# Graceful shutdown. True to enable
+controlled.shutdown.enable={{ kafka.controlled_shutdown_enable }}
+controlled.shutdown.max.retries={{ kafka.controlled_shutdown_max_retries }}
+controlled.shutdown.retry.backoff.ms={{ kafka.controlled_shutdown_retry_backoff_ms }}
+
 ############################# Socket Server Settings #############################
 
 port={{ kafka.port }}
