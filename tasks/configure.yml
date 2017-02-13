@@ -48,8 +48,6 @@
   register: remote_zookeeper_instances
   when: kafka.aws_cluster_autodiscover.enabled
 
-- debug: msg="{{remote_zookeeper_instances}}"
-
 - name: Setup environment config
   become: yes
   become_user: "{{ kafka.user }}"
