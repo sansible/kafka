@@ -5,8 +5,8 @@
 
 # The id of the broker. This must be set to a unique integer for each broker.
 # If left off one is auto-assigned
-{% if kafka.aws_cluster_autodiscover.data is defined %}
-broker.id={{ kafka.aws_cluster_autodiscover.data.id }}
+{% if kafka.aws_cluster_autodiscover.enabled == true %}
+broker.id={{ local_ec2_tags.tags.get(kafka.aws_cluster_autodiscover.id_tag_name) }}
 {% else %}
 broker.id={{ kafka.id }}
 {% endif %}
@@ -20,8 +20,8 @@ port={{ kafka.port }}
 host.name={{ kafka.listen_address }}
 {% endif %}
 
-{% if kafka.aws_cluster_autodiscover.data is defined %}
-advertised.host.name={{ kafka.aws_cluster_autodiscover.data.hostname }}
+{% if kafka.aws_cluster_autodiscover.enabled == true %}
+advertised.host.name={{ ansible_ec2_hostname }}
 {% elif kafka.advertised_host_name is defined %}
 advertised.host.name={{ kafka.advertised_host_name }}
 {% endif %}
@@ -104,7 +104,11 @@ log.cleaner.enable=false
 # server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002".
 # You can also append an optional chroot string to the urls to specify the
 # root directory for all kafka znodes.
+{% if kafka.aws_cluster_autodiscover.enabled == true %}
+zookeeper.connect={% for instance in remote_zookeeper_instances.instances %}{{ instance.private_ip_address }},{% endfor %}
+{% else %}
 zookeeper.connect={{ kafka.zookeeper_hosts | join(',') }}
+{% endif %}
 
 # Timeout in ms for connecting to zookeeper
 zookeeper.connection.timeout.ms={{ kafka.zookeeper_connection_timeout_ms }}
