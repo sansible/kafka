@@ -38,9 +38,9 @@ kafka:
   # Note that you must install the AWS CLI tools on the machine to use this feature
   aws_cluster_autodiscover:
     enabled: false
-    hosts: []
     # Tag to store the ID/index of the host that gets assigned to a machine
     id_tag_name: KafkaID
-    # AWS CLI lookup filter
-    lookup_filter: "Name=tag:Environment,Values=dev Name=tag:Role,Values=kafka"
-    r53_zone_id: ~
+    # Ansible's ec2_remote_facts filter
+    zookeeper_lookup_filter:
+      "tag:Environment": dev
+      "tag:role": zookeeper
