@@ -42,5 +42,3 @@ kafka:
     id_tag_name: KafkaID
     # Ansible's ec2_remote_facts filter
     zookeeper_lookup_filter:
-      "tag:Environment": dev
-      "tag:role": zookeeper
