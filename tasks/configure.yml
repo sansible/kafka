@@ -9,35 +9,46 @@
   notify:
     - restart kafka
 
-- name: Copy AWS autodiscover script
+- name: Install AWS packages
   become: yes
-  become_user: "{{ kafka.user }}"
-  copy:
-    src: aws_cluster_autodiscover
-    dest: "/home/{{ kafka.user }}/bin/aws_cluster_autodiscover"
-    owner: "{{ kafka.user }}"
-    group: "{{ kafka.group }}"
-    mode: 0750
+  apt:
+    name: "{{ item }}"
+  with_items:
+    - python-pip
+    - awscli
   when: kafka.aws_cluster_autodiscover.enabled
 
-- name: Run AWS autodiscover script and grab cluster settings
+- name: Install Python libraries
   become: yes
-  become_user: "{{ kafka.user }}"
-  command: "./aws_cluster_autodiscover {{ kafka.aws_cluster_autodiscover.hosts | join(',') }} {{ kafka.aws_cluster_autodiscover.r53_zone_id }} \"{{ kafka.aws_cluster_autodiscover.lookup_filter }}\" {{ kafka.aws_cluster_autodiscover.id_tag_name}}"
-  args:
-    chdir: "/home/{{ kafka.user }}/bin"
-  register: aws_cluster_autodiscover
-  until: aws_cluster_autodiscover | success
-  retries: 2
-  delay: 15
+  pip:
+    name: "{{ item }}"
+  with_items:
+    - boto
   when: kafka.aws_cluster_autodiscover.enabled
 
-- name: Set cluster facts based on AWS autodiscover script output
-  set_fact:
-    kafka:
-      aws_cluster_autodiscover:
-        data: "{{ aws_cluster_autodiscover.stdout | from_json }}"
+- name: Get local instance facts
+  become: yes
+  ec2_facts:
   when: kafka.aws_cluster_autodiscover.enabled
+
+- name: Get local instance tags
+  become: yes
+  ec2_tag:
+    region: "{{ ansible_ec2_placement_region }}"
+    resource: "{{ ansible_ec2_instance_id }}"
+    state: list
+  register: local_ec2_tags
+  when: kafka.aws_cluster_autodiscover.enabled
+
+- name: Get remote zookeeper facts
+  become: yes
+  ec2_remote_facts:
+    filters: "{{ kafka.aws_cluster_autodiscover.zookeeper_lookup_filter }}"
+    region: "{{ ansible_ec2_placement_region }}"
+  register: remote_zookeeper_instances
+  when: kafka.aws_cluster_autodiscover.enabled
+
+- debug: msg="{{remote_zookeeper_instances}}"
 
 - name: Setup environment config
   become: yes
