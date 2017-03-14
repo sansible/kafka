@@ -28,8 +28,8 @@
     chdir: "/home/{{ kafka.user }}/bin"
   register: aws_cluster_autodiscover
   until: aws_cluster_autodiscover | success
-  retries: 2
-  delay: 15
+  retries: 4
+  delay: 10
   when: kafka.aws_cluster_autodiscover.enabled
 
 - name: Set cluster facts based on AWS autodiscover script output
@@ -37,6 +37,33 @@
     kafka:
       aws_cluster_autodiscover:
         data: "{{ aws_cluster_autodiscover.stdout | from_json }}"
+  when: kafka.aws_cluster_autodiscover.enabled
+
+- name: Export DNS hostname
+  become: yes
+  become_user: "{{ kafka.user }}"
+  lineinfile:
+    create: yes
+    dest: "/home/{{ kafka.user }}/etc/hostname"
+    line: "{{ kafka.aws_cluster_autodiscover.data.hostname }}"
+  when: kafka.aws_cluster_autodiscover.enabled
+
+- name: Export hosted zone ID from aws_cluster_autodiscover settings
+  become: yes
+  become_user: "{{ kafka.user }}"
+  lineinfile:
+    create: yes
+    dest: "/home/{{ kafka.user }}/etc/hostedZone"
+    line: "{{ kafka.aws_cluster_autodiscover.r53_zone_id }}"
+  when: kafka.aws_cluster_autodiscover.enabled
+
+- name: Export broker ID to local filesystem
+  become: yes
+  become_user: "{{ kafka.user }}"
+  lineinfile:
+    create: yes
+    dest: "/home/{{ kafka.user }}/etc/brokerId"
+    line: "{{ kafka.aws_cluster_autodiscover.data.id }}"
   when: kafka.aws_cluster_autodiscover.enabled
 
 - name: Setup environment config
@@ -82,4 +109,44 @@
   wait_for:
     port: "{{ kafka.port }}"
     state: started
-    timeout: 120
+    timeout: "{{ kafka.wait_for_kafka_port }}"
+
+- name: Copy Kafka maintenance scripts
+  become: yes
+  become_user: "{{ kafka.user }}"
+  copy:
+    src: "{{ item }}"
+    mode: 0750
+    dest: "/home/{{ kafka.user }}/bin/{{ item }}"
+  with_items:
+    - kafka_maintenance_at_stop
+    - kafka_maintenance_at_start
+    - remove_dns_record
+  when: kafka.aws_cluster_autodiscover.enabled
+
+- name: Run Kafka maintenance script at start
+  become: yes
+  become_user: "{{ kafka.user }}"
+  shell: "/home/{{ kafka.user }}/bin/kafka_maintenance_at_start"
+  when: kafka.aws_cluster_autodiscover.enabled
+
+- name: Copy Kafka stop script
+  become: yes
+  copy:
+    dest: "/etc/init.d"
+    mode: 0755
+    src: "stop_kafka"
+  when: kafka.aws_cluster_autodiscover.enabled
+
+- name: Add Kafka stop script to system runlevels
+  become: yes
+  file:
+    src: "/etc/init.d/stop_kafka"
+    dest: "/etc/{{ item }}/K10kafka-controlled-shutdown"
+    state: link
+    force: yes
+  with_items:
+    - "rc0.d"
+    - "rc1.d"
+    - "rc6.d"
+  when: kafka.aws_cluster_autodiscover.enabled
