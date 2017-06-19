@@ -4,22 +4,19 @@ galaxy_info:
   author: "Wojtek Oledzki"
   description: "Install Kafka server."
   license: MIT
-  min_ansible_version: 1.9
+  min_ansible_version: 2.0
   platforms:
     - name: Ubuntu
       versions:
-        - all
+        - trusty
   categories:
     - development
 
 dependencies:
   - role: sansible.users_and_groups
-    version: v1.0
     users_and_groups:
       groups:
         - name: kafka
       users:
         - name: kafka
           group: kafka
-    tags:
-      - build

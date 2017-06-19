@@ -101,7 +101,7 @@
   service:
     name: kafka
     state: started
-    
+
 - name: Flush handlers to ensure Kafka is up to date
   meta: flush_handlers
 
