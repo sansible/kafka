@@ -1,4 +1,21 @@
-/meta/.galaxy_install_info
-.vagrant
-/tests/vagrant/sansible.*
+## IDEs, editors, ...
+.DS_Store
+.idea
+.project
 *.bak
+*.iml
+*.sublime*
+*.swp
+/.settings
+
+
+
+
+# Build and Tests Artefacts
+*.retry
+/.make
+/.venv_*
+/meta/.galaxy_install_info
+/tests/.vagrant
+/tests/*.log
+/tests/roles

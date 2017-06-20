@@ -1,12 +1,12 @@
 # Kafka
 
-Master: [![Build Status](https://travis-ci.org/sansible/kafka.svg?branch=master)](https://travis-ci.org/sansible/kafka)  
+Master: [![Build Status](https://travis-ci.org/sansible/kafka.svg?branch=master)](https://travis-ci.org/sansible/kafka)
 Develop: [![Build Status](https://travis-ci.org/sansible/kafka.svg?branch=develop)](https://travis-ci.org/sansible/kafka)
 
 * [ansible.cfg](#ansible-cfg)
 * [Installation and Dependencies](#installation-and-dependencies)
 * [Tags](#tags)
-* [Maintenance scripts] (#maintenance-scripts)
+* [Maintenance scripts](#maintenance-scripts)
 * [Examples](#examples)
 
 This roles installs Apache Kafka server.
@@ -61,7 +61,7 @@ This role uses two tags: **build** and **configure**
 ## Maintenance scripts
 
 * kafka_maintenance_at_start
-  
+
   Intention behind this script is to introduce a new node to the cluster and evenly
   redistribute data. It's included in Configure stage of Ansible role.
   The new node contacts Zookeeper (ZK) and requests all brokers IDs currenly holding data.
@@ -69,21 +69,21 @@ This role uses two tags: **build** and **configure**
 
 
 * kafka_maintenance_at_stop
-  
-  Intention behind this script is to allow node to remove itself from cluster during shutdown 
+
+  Intention behind this script is to allow node to remove itself from cluster during shutdown
   and evenly redistribute data to remaining nodes. Script is triggerend by stop_kafka included
   in relevant runleves.
   Node contacts Zookeeper (ZK) and requests all brokers IDs currenly holding data.
   Once information is received json file is generated and information provided to ZK.
 
 * remove_dns_record
-  
+
   After kafka_maintenance_at_stop is executed during shutdown (stop_kafka) node removes itself
   from Route53 (AWS).
 
 * TODO:
   Becaue kafka_maintenance_start/stop are almost identical they can be merged.
-  Depends on use argument could be provided. 
+  Depends on use argument could be provided.
   Example:
   kafka_maintenance at_start
 

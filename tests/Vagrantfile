@@ -6,7 +6,7 @@ VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
-	config.vm.box = "ubuntu/trusty64"
+	config.vm.box = "#{ENV['VAGRANT_BOX']}"
 	config.vm.box_check_update = false
 
 	config.ssh.forward_agent = true
@@ -21,15 +21,32 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
 	# Test "build" tag
 	config.vm.provision "ansible" do |ansible|
-		ansible.playbook = "test.yml"
+		ansible.playbook = "#{ENV['TEST_PLAYBOOK']}"
+		ansible.tags = [ "build" ]
+		ansible.verbose = "#{ENV['VERBOSE']}" if ENV['VERBOSE']
+	end
+	config.vm.provision "ansible" do |ansible|
+		ansible.playbook = "#{ENV['TEST_PLAYBOOK']}"
 		ansible.tags = [ "build" ]
 		ansible.verbose = "#{ENV['VERBOSE']}" if ENV['VERBOSE']
 	end
 
 	# Test "configure" tag
 	config.vm.provision "ansible" do |ansible|
-		ansible.playbook = "test.yml"
-		ansible.tags = [ "configure", "assert" ]
+		ansible.playbook = "#{ENV['TEST_PLAYBOOK']}"
+		ansible.tags = [ "configure" ]
+		ansible.verbose = "#{ENV['VERBOSE']}" if ENV['VERBOSE']
+	end
+	config.vm.provision "ansible" do |ansible|
+		ansible.playbook = "#{ENV['TEST_PLAYBOOK']}"
+		ansible.tags = [ "configure" ]
+		ansible.verbose = "#{ENV['VERBOSE']}" if ENV['VERBOSE']
+	end
+
+	# Test "assert" tag
+	config.vm.provision "ansible" do |ansible|
+		ansible.playbook = "#{ENV['TEST_PLAYBOOK']}"
+		ansible.tags = [ "assert" ]
 		ansible.verbose = "#{ENV['VERBOSE']}" if ENV['VERBOSE']
 	end
 end

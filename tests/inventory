@@ -1,0 +1,1 @@
+localhost ansible_python_interpreter="env python"

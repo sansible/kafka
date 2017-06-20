@@ -65,7 +65,7 @@
     src: kafka.conf.j2
   notify:
     - restart kafka
-    
+
 - name: Ensure Kafka runs on boot
   become: yes
   service:
