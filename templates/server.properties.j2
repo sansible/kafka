@@ -18,17 +18,15 @@ controlled.shutdown.retry.backoff.ms={{ kafka.controlled_shutdown_retry_backoff_
 
 ############################# Socket Server Settings #############################
 
-port={{ kafka.port }}
-
 # Hostname the broker will bind to. If not set, the server will bind to all interfaces
 {% if kafka.listen_address is defined %}
-host.name={{ kafka.listen_address }}
+listeners=PLAINTEXT://{{ kafka.listen_address }}:{{ kafka.port }}
 {% endif %}
 
 {% if kafka.aws_cluster_autodiscover.data is defined %}
-advertised.host.name={{ kafka.aws_cluster_autodiscover.data.hostname }}
+advertised.listeners=PLAINTEXT://{{ kafka.aws_cluster_autodiscover.data }}:{{ kafka.port }}
 {% elif kafka.advertised_host_name is defined %}
-advertised.host.name={{ kafka.advertised_host_name }}
+advertised.listeners=PLAINTEXT://{{ kafka.advertised_host_name }}:{{ kafka.port }}
 {% endif %}
 
 {# The number of threads handling network requests #}

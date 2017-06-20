@@ -32,11 +32,15 @@
   delay: 10
   when: kafka.aws_cluster_autodiscover.enabled
 
+# Combine is used with set fact as successive calls to the module
+# seem to remove previous values added to hashes
 - name: Set cluster facts based on AWS autodiscover script output
   set_fact:
-    kafka:
-      aws_cluster_autodiscover:
-        data: "{{ aws_cluster_autodiscover.stdout | from_json }}"
+    kafka: "{{ kafka | combine( {
+        'aws_cluster_autodiscover': {
+          'data': aws_cluster_autodiscover.stdout | from_json
+        }
+      }, recursive=True) }}"
   when: kafka.aws_cluster_autodiscover.enabled
 
 - name: Export DNS hostname
@@ -65,6 +69,54 @@
     dest: "/home/{{ kafka.user }}/etc/brokerId"
     line: "{{ kafka.aws_cluster_autodiscover.data.id }}"
   when: kafka.aws_cluster_autodiscover.enabled
+
+- name: Assigned ID EC2 fact hunt
+  action: ec2_facts
+  register: ec2_vars
+  until: ec2_vars | success
+  retries: 3
+  delay: 5
+  when: kafka.aws_cluster_assigned_id.enabled
+
+- name: Assigned ID grab tags from EC2 instance
+  ec2_tag:
+    region: "{{ ansible_ec2_placement_region }}"
+    resource: "{{ ansible_ec2_instance_id }}"
+    state: list
+  register: assigned_id_instance_tags
+  when: ansible_ec2_instance_id is defined
+    and kafka.aws_cluster_assigned_id.enabled
+  retries: 3
+  delay: 5
+  until: assigned_id_instance_tags | success
+
+- name: Assigned ID set Broker ID
+  set_fact:
+    kafka: "{{ kafka | combine( {
+        'id': assigned_id_instance_tags.tags[kafka.aws_cluster_assigned_id.id_tag_name]
+      }, recursive=True) }}"
+  when: ansible_ec2_instance_id is defined
+    and kafka.aws_cluster_assigned_id.enabled
+
+- name: Grab local facts for looking up interfaces
+  action: setup
+  register: local_facts
+  when: kafka.interface_bind
+    or kafka.interface_advertise
+
+- name: Set listen_address if interface bind set
+  set_fact:
+    kafka: "{{ kafka | combine( {
+        'listen_address': local_facts.ansible_facts['ansible_' + kafka.interface_bind]['ipv4']['address']
+      }, recursive=True) }}"
+  when: kafka.interface_bind
+
+- name: Set advertised_host_name if interface advertise set
+  set_fact:
+    kafka: "{{ kafka | combine( {
+        'advertised_host_name': local_facts.ansible_facts['ansible_' + kafka.interface_advertise]['ipv4']['address']
+      }, recursive=True) }}"
+  when: kafka.interface_advertise
 
 - name: Setup environment config
   become: yes
