@@ -12,6 +12,8 @@ kafka:
   group: kafka
   heap_opts: "-Xmx{{ (ansible_memtotal_mb / 2) | int }}m -Xms{{ (ansible_memtotal_mb / 2) | int }}m"
   id: 1
+  interface_bind: false
+  interface_advertise: false
   jmx_port: 9999
   log_cleanup_interval_mins: 1
   log_dir: /home/kafka/log
@@ -31,12 +33,20 @@ kafka:
   tarball_location: /home/kafka/tmp
   upstart_conf: /etc/init/kafka.conf
   user: kafka
-  version_kafka: "0.9.0.0"
+  version_kafka: "0.10.1.1"
   version_scala: "2.11"
   wait_for_kafka_port: 60
   zookeeper_connection_timeout_ms: 1000000
   zookeeper_hosts:
     - localhost
+
+  aws:
+    retries: 3
+    delay: 5
+
+  aws_cluster_assigned_id:
+    enabled: false
+    id_tag_name: instanceindex
 
   # If enabled AWS will be used to figure out which host and id should be used
   # Note that you must install the AWS CLI tools on the machine to use this feature

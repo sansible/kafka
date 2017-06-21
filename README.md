@@ -40,10 +40,61 @@ To install run `ansible-galaxy install sansible.kafka` or add this to your
 
 ```YAML
 - name: sansible.kafka
-  version: v1.0
+  version: v1.2
 ```
 
 and run `ansible-galaxy install -p ./roles -r roles.yml`
+
+### AWS Setup
+
+This role has AWS support built in, it supports two methods for deployment/discovery.
+
+#### AWS Cluster Autodiscovery
+
+This method is designed for use with a single ASG controlling a cluster of Kafka instances,
+the idea being that instances can come and go without issue.
+
+The [AWS Autodiscover script](/files/aws_cluster_autodiscover) allows machines to pick an
+ID and hostname/Route53 entry from a predefined list, AWS tags are used to mark machines
+that have claimed an ID/host.
+
+This script allows for a static set of hostnames with consistent IDs to be maintained
+accross a dynamic set of instances in an ASG.
+
+```YAML
+- role: sansible.kafka
+  kafka:
+    aws_cluster_autodiscover:
+      enabled: true
+      hosts:
+        - 01.kafka.io.internal
+        - 02.kafka.io.internal
+        - 03.kafka.io.internal
+      lookup_filter: "Name=tag:Environment,Values=dev Name=tag:Role,Values=kafka"
+      r53_zone_id: xxxxxxxx
+    # A ZK cluster behind an ELB
+    zookeeper_hosts:
+      - zookeeper.app.internal
+```
+
+#### AWS Tag Discovery
+
+Designed for instances that are stacially defined either as direct EC2 instances or
+via a single ASG per instance.
+
+The broker.id is derived from a tag attached to the instance, you can turn on this
+behaviour and specify the tag to lookup like so:
+
+```YAML
+- role: sansible.kafka
+  kafka:
+    aws_cluster_assigned_id:
+      enabled: true
+      id_tag_name: instanceindex
+    # A ZK cluster behind an ELB
+    zookeeper_hosts:
+      - zookeeper.app.internal
+```
 
 
 
@@ -59,6 +110,9 @@ This role uses two tags: **build** and **configure**
 
 
 ## Maintenance scripts
+
+These scripts are used in conjunction with the
+[AWS Cluster Autodiscovery](aws-cluster-autodiscovery) deployment method.
 
 * kafka_maintenance_at_start
 
@@ -89,6 +143,7 @@ This role uses two tags: **build** and **configure**
 
   To remove node from Route53 (AWS) Ansible module can be also used.
   This will require tests.
+
 
 
 
