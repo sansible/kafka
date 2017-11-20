@@ -1,7 +1,7 @@
 ---
 
 kafka:
-  apache_mirror: http://apache.mirror.anlx.net/
+  apache_mirror: https://archive.apache.org/dist/
   auto_create_topics: "false"
   conf_dir: /home/kafka/etc
   controlled_shutdown_enable: true
