@@ -1,1 +1,2 @@
-ansible-lint==3.*
+docker-py
+molecule

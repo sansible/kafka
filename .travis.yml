@@ -2,9 +2,11 @@
 
 group: stable
 dist: trusty
+sudo: required
 
 language: python
-python: "2.7"
+python:
+  - 2.7
 
 branches:
   only:
@@ -12,22 +14,23 @@ branches:
     - master
 
 env:
-  - ANSIBLE_INSTALL_VERSION=2.0.2.0
-  - ANSIBLE_INSTALL_VERSION=2.1.5.0
   - ANSIBLE_INSTALL_VERSION=2.2.3.0
-  - ANSIBLE_INSTALL_VERSION=2.3.1.0
+  - ANSIBLE_INSTALL_VERSION=2.3.3.0
+  - ANSIBLE_INSTALL_VERSION=2.4.3.0
+  - ANSIBLE_INSTALL_VERSION=2.5.0
+
+services:
+  - docker
 
 before_install:
-  # Make sure everything's up to date.
   - sudo apt-get update -qq
+  - sudo apt-get install -o Dpkg::Options::="--force-confold" --force-yes -y docker-ce
 
 install:
-  # dowload dependencies
-  - make test_deps
+  - make deps
 
 script:
-  - make lint
-  - make test_ansible
+  - make test
 
 notifications:
   webhooks: https://galaxy.ansible.com/api/v1/notifications/
