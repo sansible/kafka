@@ -1,0 +1,10 @@
+---
+
+- src: sansible.java
+  version: v2.0
+
+- src: sansible.users_and_groups
+  version: v2.0
+
+- src: sansible.zookeeper
+  version: v3.0

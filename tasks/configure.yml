@@ -8,29 +8,30 @@
     line: "127.0.0.1 {{ ansible_hostname }}"
   notify:
     - restart kafka
+  when: ansible_virtualization_type != 'docker'
 
 - name: Copy AWS autodiscover script
   become: yes
-  become_user: "{{ kafka.user }}"
+  become_user: "{{ sansible_kafka_user }}"
   copy:
     src: aws_cluster_autodiscover
-    dest: "/home/{{ kafka.user }}/bin/aws_cluster_autodiscover"
-    owner: "{{ kafka.user }}"
-    group: "{{ kafka.group }}"
+    dest: "/home/{{ sansible_kafka_user }}/bin/aws_cluster_autodiscover"
+    owner: "{{ sansible_kafka_user }}"
+    group: "{{ sansible_kafka_group }}"
     mode: 0750
-  when: kafka.aws_cluster_autodiscover.enabled
+  when: sansible_kafka_aws_cluster_autodiscover_enabled
 
 - name: Run AWS autodiscover script and grab cluster settings
   become: yes
-  become_user: "{{ kafka.user }}"
-  command: "./aws_cluster_autodiscover {{ kafka.aws_cluster_autodiscover.hosts | join(',') }} {{ kafka.aws_cluster_autodiscover.r53_zone_id }} \"{{ kafka.aws_cluster_autodiscover.lookup_filter }}\" {{ kafka.aws_cluster_autodiscover.id_tag_name}}"
+  become_user: "{{ sansible_kafka_user }}"
+  command: "./aws_cluster_autodiscover {{ sansible_kafka_aws_cluster_autodiscover_hosts | join(',') }} {{ sansible_kafka_aws_cluster_autodiscover_r53_zone_id }} \"{{ sansible_kafka_aws_cluster_autodiscover_lookup_filter }}\" {{ sansible_kafka_aws_cluster_autodiscover_id_tag_name }}"
   args:
-    chdir: "/home/{{ kafka.user }}/bin"
+    chdir: "/home/{{ sansible_kafka_user }}/bin"
   register: aws_cluster_autodiscover
   until: aws_cluster_autodiscover | success
   retries: 4
   delay: 10
-  when: kafka.aws_cluster_autodiscover.enabled
+  when: sansible_kafka_aws_cluster_autodiscover_enabled
 
 # Combine is used with set fact as successive calls to the module
 # seem to remove previous values added to hashes
@@ -41,34 +42,34 @@
           'data': aws_cluster_autodiscover.stdout | from_json
         }
       }, recursive=True) }}"
-  when: kafka.aws_cluster_autodiscover.enabled
+  when: sansible_kafka_aws_cluster_autodiscover_enabled
 
 - name: Export DNS hostname
   become: yes
-  become_user: "{{ kafka.user }}"
+  become_user: "{{ sansible_kafka_user }}"
   lineinfile:
     create: yes
-    dest: "/home/{{ kafka.user }}/etc/hostname"
-    line: "{{ kafka.aws_cluster_autodiscover.data.hostname }}"
-  when: kafka.aws_cluster_autodiscover.enabled
+    dest: "/home/{{ sansible_kafka_user }}/etc/hostname"
+    line: "{{ sansible_kafka_aws_cluster_autodiscover_data_hostname }}"
+  when: sansible_kafka_aws_cluster_autodiscover_enabled
 
 - name: Export hosted zone ID from aws_cluster_autodiscover settings
   become: yes
-  become_user: "{{ kafka.user }}"
+  become_user: "{{ sansible_kafka_user }}"
   lineinfile:
     create: yes
-    dest: "/home/{{ kafka.user }}/etc/hostedZone"
-    line: "{{ kafka.aws_cluster_autodiscover.r53_zone_id }}"
-  when: kafka.aws_cluster_autodiscover.enabled
+    dest: "/home/{{ sansible_kafka_user }}/etc/hostedZone"
+    line: "{{ sansible_kafka_aws_cluster_autodiscover_r53_zone_id }}"
+  when: sansible_kafka_aws_cluster_autodiscover_enabled
 
 - name: Export broker ID to local filesystem
   become: yes
-  become_user: "{{ kafka.user }}"
+  become_user: "{{ sansible_kafka_user }}"
   lineinfile:
     create: yes
-    dest: "/home/{{ kafka.user }}/etc/brokerId"
-    line: "{{ kafka.aws_cluster_autodiscover.data.id }}"
-  when: kafka.aws_cluster_autodiscover.enabled
+    dest: "/home/{{ sansible_kafka_user }}/etc/brokerId"
+    line: "{{ sansible_kafka_aws_cluster_autodiscover_data_hostname }}"
+  when: sansible_kafka_aws_cluster_autodiscover_enabled
 
 - name: Assigned ID EC2 fact hunt
   action: ec2_facts
@@ -76,7 +77,7 @@
   until: ec2_vars | success
   retries: 3
   delay: 5
-  when: kafka.aws_cluster_assigned_id.enabled
+  when: sansible_kafka_aws_cluster_assigned_id_enabled
 
 - name: Assigned ID grab tags from EC2 instance
   ec2_tag:
@@ -85,7 +86,7 @@
     state: list
   register: assigned_id_instance_tags
   when: ansible_ec2_instance_id is defined
-    and kafka.aws_cluster_assigned_id.enabled
+    and sansible_kafka_aws_cluster_assigned_id_enabled
   retries: 3
   delay: 5
   until: assigned_id_instance_tags | success
@@ -93,36 +94,36 @@
 - name: Assigned ID set Broker ID
   set_fact:
     kafka: "{{ kafka | combine( {
-        'id': assigned_id_instance_tags.tags[kafka.aws_cluster_assigned_id.id_tag_name]
+        'id': assigned_id_instance_tags.tags[sansible_kafka_aws_cluster_autodiscover_id_tag_name]
       }, recursive=True) }}"
   when: ansible_ec2_instance_id is defined
-    and kafka.aws_cluster_assigned_id.enabled
+    and sansible_kafka_aws_cluster_assigned_id_enabled
 
 - name: Grab local facts for looking up interfaces
   action: setup
   register: local_facts
-  when: kafka.interface_bind
-    or kafka.interface_advertise
+  when: sansible_kafka_interface_bind
+    or sansible_kafka_interface_advertise
 
 - name: Set listen_address if interface bind set
   set_fact:
     kafka: "{{ kafka | combine( {
-        'listen_address': local_facts.ansible_facts['ansible_' + kafka.interface_bind]['ipv4']['address']
+        'listen_address': local_facts.ansible_facts['ansible_' + sansible_kafka_interface_bind]['ipv4']['address']
       }, recursive=True) }}"
-  when: kafka.interface_bind
+  when: sansible_kafka_interface_bind
 
 - name: Set advertised_host_name if interface advertise set
   set_fact:
     kafka: "{{ kafka | combine( {
-        'advertised_host_name': local_facts.ansible_facts['ansible_' + kafka.interface_advertise]['ipv4']['address']
+        'advertised_host_name': local_facts.ansible_facts['ansible_' + sansible_kafka_interface_advertise]['ipv4']['address']
       }, recursive=True) }}"
-  when: kafka.interface_advertise
+  when: sansible_kafka_interface_advertise
 
 - name: Setup environment config
   become: yes
-  become_user: "{{ kafka.user }}"
+  become_user: "{{ sansible_kafka_user }}"
   template:
-    dest: "/home/{{ kafka.user }}/etc/environment"
+    dest: "/home/{{ sansible_kafka_user }}/etc/environment"
     mode: 0644
     src: environment.j2
   notify:
@@ -130,9 +131,9 @@
 
 - name: Create log4j.properties
   become: yes
-  become_user: "{{ kafka.user }}"
+  become_user: "{{ sansible_kafka_user }}"
   template:
-    dest: "/home/{{ kafka.user }}/etc/log4j.properties"
+    dest: "/home/{{ sansible_kafka_user }}/etc/log4j.properties"
     mode: 0644
     src: log4j.properties.j2
   notify:
@@ -140,9 +141,9 @@
 
 - name: Create server.properties
   become: yes
-  become_user: "{{ kafka.user }}"
+  become_user: "{{ sansible_kafka_user }}"
   template:
-    dest: "/home/{{ kafka.user }}/etc/server.properties"
+    dest: "/home/{{ sansible_kafka_user }}/etc/server.properties"
     mode: 0640
     src: server.properties.j2
   notify:
@@ -159,28 +160,28 @@
 
 - name: Wait for Kafka port
   wait_for:
-    port: "{{ kafka.port }}"
+    port: "{{ sansible_kafka_port }}"
     state: started
-    timeout: "{{ kafka.wait_for_kafka_port }}"
+    timeout: "{{ sansible_kafka_wait_for_kafka_port }}"
 
 - name: Copy Kafka maintenance scripts
   become: yes
-  become_user: "{{ kafka.user }}"
+  become_user: "{{ sansible_kafka_user }}"
   copy:
     src: "{{ item }}"
     mode: 0750
-    dest: "/home/{{ kafka.user }}/bin/{{ item }}"
+    dest: "/home/{{ sansible_kafka_user }}/bin/{{ item }}"
   with_items:
     - kafka_maintenance_at_stop
     - kafka_maintenance_at_start
     - remove_dns_record
-  when: kafka.aws_cluster_autodiscover.enabled
+  when: sansible_kafka_aws_cluster_autodiscover_enabled
 
 - name: Run Kafka maintenance script at start
   become: yes
-  become_user: "{{ kafka.user }}"
-  shell: "/home/{{ kafka.user }}/bin/kafka_maintenance_at_start"
-  when: kafka.aws_cluster_autodiscover.enabled
+  become_user: "{{ sansible_kafka_user }}"
+  command: "/home/{{ sansible_kafka_user }}/bin/kafka_maintenance_at_start"
+  when: sansible_kafka_aws_cluster_autodiscover_enabled
 
 - name: Copy Kafka stop script
   become: yes
@@ -188,7 +189,7 @@
     dest: "/etc/init.d"
     mode: 0755
     src: "stop_kafka"
-  when: kafka.aws_cluster_autodiscover.enabled
+  when: sansible_kafka_aws_cluster_autodiscover_enabled
 
 - name: Add Kafka stop script to system runlevels
   become: yes
@@ -201,4 +202,4 @@
     - "rc0.d"
     - "rc1.d"
     - "rc6.d"
-  when: kafka.aws_cluster_autodiscover.enabled
+  when: sansible_kafka_aws_cluster_autodiscover_enabled

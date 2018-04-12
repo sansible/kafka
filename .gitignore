@@ -1,4 +1,5 @@
 ## IDEs, editors, ...
+.\#*
 .DS_Store
 .idea
 .project
@@ -7,15 +8,12 @@
 *.sublime*
 *.swp
 /.settings
-
-
-
+\#*\#
 
 # Build and Tests Artefacts
+*.pyc
 *.retry
-/.make
-/.venv_*
+.cache/
+.molecule/
+.venv_*
 /meta/.galaxy_install_info
-/tests/.vagrant
-/tests/*.log
-/tests/roles

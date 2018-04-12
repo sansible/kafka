@@ -1,68 +1,63 @@
 ---
 
-- name: Install OpenJDK
-  become: yes
-  apt:
-    name: openjdk-7-jre-headless
-
 - name: Ensure install folders
   become: yes
-  become_user: "{{ kafka.user }}"
+  become_user: "{{ sansible_kafka_user }}"
   file:
     state: directory
     path: "{{ item }}"
   with_items:
-    - "/home/{{ kafka.user }}/bin"
-    - "/home/{{ kafka.user }}/tmp"
-    - "/home/{{ kafka.user }}/log"
-    - "/home/{{ kafka.user }}/data"
+    - "/home/{{ sansible_kafka_user }}/bin"
+    - "/home/{{ sansible_kafka_user }}/tmp"
+    - "/home/{{ sansible_kafka_user }}/log"
+    - "/home/{{ sansible_kafka_user }}/data"
 
 - name: Remove lost+found in the datadir
   become: yes
   file:
-    path: "/home/{{ kafka.user }}/data/lost+found"
+    path: "/home/{{ sansible_kafka_user }}/data/lost+found"
     state: absent
 
 - name: Fetch kafka binary package
   become: yes
-  become_user: "{{ kafka.user }}"
+  become_user: "{{ sansible_kafka_user }}"
   get_url:
-    dest: "/home/{{ kafka.user }}/tmp/kafka_{{ kafka.version_scala }}-{{ kafka.version_kafka }}.tgz"
-    url: "{{ kafka.apache_mirror }}/kafka/{{ kafka.version_kafka }}/kafka_{{ kafka.version_scala }}-{{ kafka.version_kafka }}.tgz"
+    dest: "/home/{{ sansible_kafka_user }}/tmp/kafka_{{ sansible_kafka_version_scala }}-{{ sansible_kafka_version_kafka }}.tgz"
+    url: "{{ sansible_kafka_apache_mirror }}/kafka/{{ sansible_kafka_version_kafka }}/kafka_{{ sansible_kafka_version_scala }}-{{ sansible_kafka_version_kafka }}.tgz"
 
 - name: Uncompress the kafka tar
   become: yes
-  become_user: "{{ kafka.user }}"
+  become_user: "{{ sansible_kafka_user }}"
   unarchive:
     copy: no
-    creates: "/home/{{ kafka.user }}/kafka_{{ kafka.version_scala }}-{{ kafka.version_kafka }}"
-    dest: "/home/{{ kafka.user }}"
-    src: "/home/{{ kafka.user }}/tmp/kafka_{{ kafka.version_scala }}-{{ kafka.version_kafka }}.tgz"
+    creates: "/home/{{ sansible_kafka_user }}/kafka_{{ sansible_kafka_version_scala }}-{{ sansible_kafka_version_kafka }}"
+    dest: "/home/{{ sansible_kafka_user }}"
+    src: "/home/{{ sansible_kafka_user }}/tmp/kafka_{{ sansible_kafka_version_scala }}-{{ sansible_kafka_version_kafka }}.tgz"
 
 - name: Link kafka to the right version
   become: yes
-  become_user: "{{ kafka.user }}"
+  become_user: "{{ sansible_kafka_user }}"
   file:
-    path: "/home/{{ kafka.user }}/kafka"
-    src: "/home/{{ kafka.user }}/kafka_{{ kafka.version_scala }}-{{ kafka.version_kafka }}"
+    path: "/home/{{ sansible_kafka_user }}/kafka"
+    src: "/home/{{ sansible_kafka_user }}/kafka_{{ sansible_kafka_version_scala }}-{{ sansible_kafka_version_kafka }}"
     state: link
 
 - name: link config dir
   become: yes
-  become_user: "{{ kafka.user }}"
+  become_user: "{{ sansible_kafka_user }}"
   file:
     force: yes
-    path: "/home/{{ kafka.user }}/etc"
-    src: "/home/{{ kafka.user }}/kafka/config"
+    path: "/home/{{ sansible_kafka_user }}/etc"
+    src: "/home/{{ sansible_kafka_user }}/kafka/config"
     state: link
 
 - name: Create Kafka service
   become: yes
   template:
-    dest: "{{ kafka.upstart_conf }}"
+    dest: /etc/init.d/kafka
     owner: root
-    mode: 0644
-    src: kafka.conf.j2
+    mode: 0755
+    src: kafka_sysv.j2
   notify:
     - restart kafka
 
