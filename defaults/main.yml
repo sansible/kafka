@@ -35,6 +35,7 @@ sansible_kafka_log_level: WARN
 sansible_kafka_log_retention_bytes: 104857600  # 100 M
 sansible_kafka_log_retention_hours: 24
 sansible_kafka_log_segment_bytes: 104857600
+sansible_kafka_max_open_files: 4098
 sansible_kafka_num_io_threads: 2
 sansible_kafka_num_network_threads: 2
 sansible_kafka_num_partitions: 2

@@ -28,11 +28,14 @@ fi
 
 do_start()
 {
-	KAFKA_HEAP_OPTS="${KAFKA_HEAP_OPTS}" JMX_PORT="${JMX_PORT}" \
-	    exec start-stop-daemon --chuid ${USER}:${GROUP}  --start --quiet \
-	    --background --pidfile $PIDFILE --exec $DAEMON -- \
-		$DAEMON_ARGS \
-		|| return 2
+  if [ -n "$MAX_OPEN_FILES" ]; then
+    ulimit -n $MAX_OPEN_FILES
+  fi
+  KAFKA_HEAP_OPTS="${KAFKA_HEAP_OPTS}" JMX_PORT="${JMX_PORT}" \
+      exec start-stop-daemon --chuid ${USER}:${GROUP}  --start --quiet \
+      --background --pidfile $PIDFILE --exec $DAEMON -- \
+    $DAEMON_ARGS \
+    || return 2
 }
 
 
