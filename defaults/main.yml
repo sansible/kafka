@@ -3,6 +3,7 @@
 sansible_kafka_apache_mirror: https://archive.apache.org/dist/
 sansible_kafka_auto_create_topics: "false"
 sansible_kafka_aws_cluster_assigned_id_enabled: no
+sansible_kafka_aws_cluster_assigned_id_tag_name: instanceindex
 # If enabled AWS will be used to figure out which host and id should be used
 # Note that you must install the AWS CLI tools to use this feature
 sansible_kafka_aws_cluster_autodiscover_enabled: no
@@ -11,7 +12,6 @@ sansible_kafka_aws_cluster_autodiscover_id_tag_name: KafkaID
 sansible_kafka_aws_cluster_autodiscover_lookup_filter: "Name=tag:Environment,Values=dev Name=tag:Role,Values=kafka"
 sansible_kafka_aws_cluster_autodiscover_r53_zone_id: ~
 sansible_kafka_aws_delay: 5
-sansible_kafka_aws_id_tag_name: instanceindex
 sansible_kafka_aws_retries: 3
 sansible_kafka_conf_dir: /home/kafka/etc
 sansible_kafka_controlled_shutdown_enable: true

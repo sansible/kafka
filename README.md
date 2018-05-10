@@ -49,17 +49,16 @@ maintained across a dynamic set of instances in an ASG.
 
 ```YAML
 - role: sansible.kafka
-  kafka:
-    sansible_kafka_aws_cluster_autodiscover_enabled: yes
-    sansible_kafka_aws_cluster_autodiscover_hosts:
-      - 01.kafka.io.internal
-      - 02.kafka.io.internal
-      - 03.kafka.io.internal
-    sansible_kafka_aws_cluster_autodiscover_lookup_filter: "Name=tag:Environment,Values=dev Name=tag:Role,Values=kafka"
-    sansible_kafka_aws_cluster_autodiscover_r53_zone_id: xxxxxxxx
-    # A ZK cluster behind an ELB
-    sansible_kafka_zookeeper_hosts:
-      - zookeeper.app.internal
+  sansible_kafka_aws_cluster_autodiscover_enabled: yes
+  sansible_kafka_aws_cluster_autodiscover_hosts:
+    - 01.kafka.io.internal
+    - 02.kafka.io.internal
+    - 03.kafka.io.internal
+  sansible_kafka_aws_cluster_autodiscover_lookup_filter: "Name=tag:Environment,Values=dev Name=tag:Role,Values=kafka"
+  sansible_kafka_aws_cluster_autodiscover_r53_zone_id: xxxxxxxx
+  # A ZK cluster behind an ELB
+  sansible_kafka_zookeeper_hosts:
+    - zookeeper.app.internal
 ```
 
 #### AWS Tag Discovery
@@ -72,12 +71,11 @@ this behaviour and specify the tag to lookup like so:
 
 ```YAML
 - role: sansible.kafka
-  kafka:
-    sansible_kafka_aws_cluster_assigned_id_enabled: yes
-    sansible_kafka_aws_cluster_autodiscover_id_tag_name: instanceindex
-    # A ZK cluster behind an ELB
-    sansible_kafka_zookeeper_hosts:
-      - zookeeper.app.internal
+  sansible_kafka_aws_cluster_assigned_id_enabled: yes
+  sansible_kafka_aws_cluster_assigned_id_tag_name: instanceindex
+  # A ZK cluster behind an ELB
+  sansible_kafka_zookeeper_hosts:
+    - zookeeper.app.internal
 ```
 
 
