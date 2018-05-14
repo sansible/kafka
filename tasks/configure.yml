@@ -93,9 +93,7 @@
 
 - name: Assigned ID set Broker ID
   set_fact:
-    kafka: "{{ kafka | combine( {
-        'id': assigned_id_instance_tags.tags[sansible_kafka_aws_cluster_autodiscover_id_tag_name]
-      }, recursive=True) }}"
+    sansible_kafka_aws_cluster_assigned_id: "{{ assigned_id_instance_tags.tags[sansible_kafka_aws_cluster_assigned_id_tag_name] }}"
   when: ansible_ec2_instance_id is defined
     and sansible_kafka_aws_cluster_assigned_id_enabled
 
