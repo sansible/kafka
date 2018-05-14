@@ -22,8 +22,8 @@ sansible_kafka_default_replication_factor: 1
 sansible_kafka_group: kafka
 sansible_kafka_heap_opts: "-Xmx{{ (ansible_memtotal_mb / 2) | int }}m -Xms{{ (ansible_memtotal_mb / 2) | int }}m"
 sansible_kafka_id: 1
-sansible_kafka_interface_advertise: no
-sansible_kafka_interface_bind: no
+sansible_kafka_interface_advertise: ~
+sansible_kafka_interface_bind: ~
 sansible_kafka_java_vendor: openjdk
 sansible_kafka_java_version: 8
 sansible_kafka_jmx_port: 9999

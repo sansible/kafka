@@ -100,22 +100,18 @@
 - name: Grab local facts for looking up interfaces
   action: setup
   register: local_facts
-  when: sansible_kafka_interface_bind
-    or sansible_kafka_interface_advertise
+  when: sansible_kafka_interface_bind is not none
+    or sansible_kafka_interface_advertise is not none
 
 - name: Set listen_address if interface bind set
   set_fact:
-    kafka: "{{ kafka | combine( {
-        'listen_address': local_facts.ansible_facts['ansible_' + sansible_kafka_interface_bind]['ipv4']['address']
-      }, recursive=True) }}"
-  when: sansible_kafka_interface_bind
+    sansible_kafka_listen_address: "{{ local_facts.ansible_facts['ansible_' + sansible_kafka_interface_bind]['ipv4']['address'] }}"
+  when: sansible_kafka_interface_bind is not none
 
 - name: Set advertised_host_name if interface advertise set
   set_fact:
-    kafka: "{{ kafka | combine( {
-        'advertised_host_name': local_facts.ansible_facts['ansible_' + sansible_kafka_interface_advertise]['ipv4']['address']
-      }, recursive=True) }}"
-  when: sansible_kafka_interface_advertise
+    sansible_kafka_advertised_host_name: "{{ local_facts.ansible_facts['ansible_' + sansible_kafka_interface_advertise]['ipv4']['address'] }}"
+  when: sansible_kafka_interface_advertise is not none
 
 - name: Setup environment config
   become: yes
