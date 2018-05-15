@@ -58,11 +58,3 @@
     owner: root
     mode: 0755
     src: kafka_sysv.j2
-  notify:
-    - restart kafka
-
-- name: Ensure Kafka runs on boot
-  become: yes
-  service:
-    enabled: yes
-    name: kafka

@@ -146,6 +146,7 @@
 - name: Ensure Kafka is running
   become: yes
   service:
+    enabled: yes
     name: kafka
     state: started
 
