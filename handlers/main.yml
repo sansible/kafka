@@ -5,6 +5,7 @@
   service:
     name: kafka
     state: started
+  when: not sansible_kafka_just_started.changed
 
 - name: stop kafka
   become: yes
@@ -17,3 +18,4 @@
   service:
     name: kafka
     state: restarted
+  when: not sansible_kafka_just_started.changed

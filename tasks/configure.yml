@@ -149,6 +149,7 @@
     enabled: yes
     name: kafka
     state: started
+  register: sansible_kafka_just_started
 
 - name: Flush handlers to ensure Kafka is up to date
   meta: flush_handlers

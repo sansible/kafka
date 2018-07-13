@@ -51,3 +51,6 @@ sansible_kafka_wait_for_kafka_port: 60
 sansible_kafka_zookeeper_connection_timeout_ms: 1000000
 sansible_kafka_zookeeper_hosts:
   - localhost
+
+sansible_kafka_just_started:
+  changed: no
