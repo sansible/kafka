@@ -47,7 +47,7 @@ sansible_kafka_tarball_location: /home/kafka/tmp
 sansible_kafka_user: kafka
 sansible_kafka_version_kafka: 0.10.1.1
 sansible_kafka_version_scala: 2.11
-sansible_kafka_wait_for_kafka_port: 60
+sansible_kafka_wait_for_kafka_port: 120
 sansible_kafka_zookeeper_connection_timeout_ms: 1000000
 sansible_kafka_zookeeper_hosts:
   - localhost

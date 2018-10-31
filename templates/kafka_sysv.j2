@@ -29,10 +29,6 @@ fi
 
 do_start()
 {
-    if [ -f $PIDFILE ]; then
-      return 0
-    fi
-
     if [ -e ${PIDFILE} ]; then
         # Check the actual status of process
         status_of_proc -p $PIDFILE java "$NAME" && status="0" || status="$?"

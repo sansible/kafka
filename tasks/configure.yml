@@ -72,7 +72,7 @@
   when: sansible_kafka_aws_cluster_autodiscover_enabled
 
 - name: Assigned ID EC2 fact hunt
-  action: ec2_facts
+  action: ec2_instance_metadata
   register: ec2_vars
   until: ec2_vars | success
   retries: 3
