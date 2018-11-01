@@ -58,3 +58,10 @@
     owner: root
     mode: 0755
     src: kafka_sysv.j2
+
+- name: Create kafka startup links
+  become: yes
+  command: update-rc.d kafka defaults
+  args:
+    creates: "/etc/rc0.d/K??kafka"
+  when: ansible_distribution_release == "bionic"
