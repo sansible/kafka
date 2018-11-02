@@ -1,53 +1,26 @@
 ---
 
 sansible_kafka_apache_mirror: https://archive.apache.org/dist/
-sansible_kafka_auto_create_topics: "false"
 sansible_kafka_aws_cluster_assigned_id_enabled: no
 sansible_kafka_aws_cluster_assigned_id_tag_name: instanceindex
-# If enabled AWS will be used to figure out which host and id should be used
-# Note that you must install the AWS CLI tools to use this feature
-sansible_kafka_aws_cluster_autodiscover_enabled: no
-sansible_kafka_aws_cluster_autodiscover_hosts: []
-sansible_kafka_aws_cluster_autodiscover_id_tag_name: KafkaID
-sansible_kafka_aws_cluster_autodiscover_lookup_filter: "Name=tag:Environment,Values=dev Name=tag:Role,Values=kafka"
-sansible_kafka_aws_cluster_autodiscover_r53_zone_id: ~
-sansible_kafka_aws_delay: 5
-sansible_kafka_aws_retries: 3
 sansible_kafka_conf_dir: /home/kafka/etc
-sansible_kafka_controlled_shutdown_enable: true
-sansible_kafka_controlled_shutdown_max_retries: 3
-sansible_kafka_controlled_shutdown_retry_backoff_ms: 2000
-sansible_kafka_data_dir: /home/kafka/data
-sansible_kafka_default_replication_factor: 1
 sansible_kafka_group: kafka
 sansible_kafka_heap_opts: "-Xmx{{ (ansible_memtotal_mb / 2) | int }}m -Xms{{ (ansible_memtotal_mb / 2) | int }}m"
-sansible_kafka_id: 1
 sansible_kafka_interface_advertise: ~
 sansible_kafka_interface_bind: ~
 sansible_kafka_java_vendor: openjdk
 sansible_kafka_java_version: 8
 sansible_kafka_jmx_port: 9999
-sansible_kafka_log_cleanup_interval_mins: 1
 sansible_kafka_log_dir: /home/kafka/log
-sansible_kafka_log_flush_interval_messages: 10000
-sansible_kafka_log_flush_interval_ms: 1000
 sansible_kafka_log_level: WARN
-sansible_kafka_log_retention_bytes: 104857600  # 100 M
-sansible_kafka_log_retention_hours: 24
-sansible_kafka_log_segment_bytes: 104857600
 sansible_kafka_max_open_files: 4098
-sansible_kafka_num_io_threads: 2
-sansible_kafka_num_network_threads: 2
-sansible_kafka_num_partitions: 2
 sansible_kafka_port: 9092
-sansible_kafka_socket_receive_buffer_bytes: 1048576
-sansible_kafka_socket_request_max_bytes: 104857600
-sansible_kafka_socket_send_buffer_bytes: 1048576
+sansible_kafka_server_properties: {}
 sansible_kafka_tarball_location: /home/kafka/tmp
 sansible_kafka_user: kafka
-sansible_kafka_version_kafka: 0.10.1.1
+sansible_kafka_version_kafka: 2.0.0
 sansible_kafka_version_scala: 2.11
 sansible_kafka_wait_for_kafka_port: 120
 sansible_kafka_zookeeper_connection_timeout_ms: 1000000
 sansible_kafka_zookeeper_hosts:
-  - localhost
+  - localhost:2181

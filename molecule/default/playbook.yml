@@ -3,6 +3,8 @@
 - name: Converge
   hosts: all
 
+  # Take a look at hosts vars in molecule.yml as well
+
   roles:
     - role: sansible.zookeeper
 
