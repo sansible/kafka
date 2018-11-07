@@ -1,4 +1,4 @@
-ANSIBLE_INSTALL_VERSION ?= 2.5.9
+ANSIBLE_INSTALL_VERSION ?= 2.6.7
 PATH := $(PWD)/.venv_ansible$(ANSIBLE_INSTALL_VERSION)/bin:$(shell printenv PATH)
 SHELL := env PATH=$(PATH) /bin/bash
 
@@ -6,19 +6,12 @@ SHELL := env PATH=$(PATH) /bin/bash
 .PHONY: all clean destroy help test
 
 
-_check_venv:
-	@if [ ! -e .venv_ansible$(ANSIBLE_INSTALL_VERSION)/bin/activate ]; then \
-	 	echo -e "\033[0;31mERROR: No virtualenv found - run 'make deps' first\033[0m"; \
-		false; \
-	fi
-
-
 ## Make deps, test
 all: deps test
 
 
 ## Activate the virtualenv
-activate: _check_venv
+activate: .venv_ansible$(ANSIBLE_INSTALL_VERSION)
 	@echo -e "\033[0;32mINFO: Activating venv_ansible$(ANSIBLE_INSTALL_VERSION) (ctrl-d to exit)\033[0m"
 	@exec $(SHELL) --init-file .venv_ansible$(ANSIBLE_INSTALL_VERSION)/bin/activate
 
@@ -42,18 +35,24 @@ destroy:
 		echo -e "\033[0;33mWARNING: molecule not found - either remove potential containers manually or run 'make deps' first\033[0m"; \
 	fi
 
+
 ## Login to docker container named '%'
-login_%: _check_venv
+login_%: .venv_ansible$(ANSIBLE_INSTALL_VERSION)
 	@echo -e "\033[0;32mINFO: Logging into $(subst login_,,$@) (ctrl-d to exit)\033[0m"
 	@.venv_ansible$(ANSIBLE_INSTALL_VERSION)/bin/molecule login --host $(subst login_,,$@)
 
+
 ## Run 'molecule test --destroy=never' (run 'make destroy' to destroy containers)
-test: _check_venv
+test: .venv_ansible$(ANSIBLE_INSTALL_VERSION)
 	@.venv_ansible$(ANSIBLE_INSTALL_VERSION)/bin/molecule test --destroy=never
 
 
+# shortcut for creating virtualenv
+.venv: .venv_ansible$(ANSIBLE_INSTALL_VERSION)
+
+
 ## Create virtualenv, install dependencies
-deps:
+.venv_ansible$(ANSIBLE_INSTALL_VERSION):
 	@if (python -V 2>&1 | grep -qv "Python 2.7"); then \
 		echo -e "\033[0;31mERROR: Only Python 2.7 is supported at this stage\033[0m"; \
 		false; \
@@ -66,7 +65,7 @@ deps:
 
 
 ## Run 'make test' on any file change
-watch: _check_venv
+watch: .venv_ansible$(ANSIBLE_INSTALL_VERSION)
 	@while sleep 1; do \
 		find defaults/ files/ handlers/ meta/ molecule/*/*.yml molecule/*/test/*.py tasks/ templates/ vars/ 2> /dev/null \
 		| entr -d make test; \

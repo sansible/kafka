@@ -7,6 +7,7 @@ sudo: required
 language: python
 python:
   - 2.7
+cache: pip
 
 branches:
   only:
@@ -14,8 +15,9 @@ branches:
     - master
 
 env:
-  - ANSIBLE_INSTALL_VERSION=2.5.9
-  - ANSIBLE_INSTALL_VERSION=2.6.6
+  - ANSIBLE_INSTALL_VERSION=2.4.6.0
+  - ANSIBLE_INSTALL_VERSION=2.5.11
+  - ANSIBLE_INSTALL_VERSION=2.6.7
   - ANSIBLE_INSTALL_VERSION=2.7.1
 
 services:
@@ -26,7 +28,7 @@ before_install:
   - sudo apt-get install -o Dpkg::Options::="--force-confold" --force-yes -y docker-ce
 
 install:
-  - make deps
+  - make .venv
 
 script:
   - make test

@@ -10,67 +10,6 @@
     - restart kafka
   when: ansible_virtualization_type != 'docker'
 
-- name: Copy AWS autodiscover script
-  become: yes
-  become_user: "{{ sansible_kafka_user }}"
-  copy:
-    src: aws_cluster_autodiscover
-    dest: "/home/{{ sansible_kafka_user }}/bin/aws_cluster_autodiscover"
-    owner: "{{ sansible_kafka_user }}"
-    group: "{{ sansible_kafka_group }}"
-    mode: 0750
-  when: sansible_kafka_aws_cluster_autodiscover_enabled
-
-- name: Run AWS autodiscover script and grab cluster settings
-  become: yes
-  become_user: "{{ sansible_kafka_user }}"
-  command: "./aws_cluster_autodiscover {{ sansible_kafka_aws_cluster_autodiscover_hosts | join(',') }} {{ sansible_kafka_aws_cluster_autodiscover_r53_zone_id }} \"{{ sansible_kafka_aws_cluster_autodiscover_lookup_filter }}\" {{ sansible_kafka_aws_cluster_autodiscover_id_tag_name }}"
-  args:
-    chdir: "/home/{{ sansible_kafka_user }}/bin"
-  register: aws_cluster_autodiscover
-  until: aws_cluster_autodiscover | success
-  retries: 4
-  delay: 10
-  when: sansible_kafka_aws_cluster_autodiscover_enabled
-
-# Combine is used with set fact as successive calls to the module
-# seem to remove previous values added to hashes
-- name: Set cluster facts based on AWS autodiscover script output
-  set_fact:
-    kafka: "{{ kafka | combine( {
-        'aws_cluster_autodiscover': {
-          'data': aws_cluster_autodiscover.stdout | from_json
-        }
-      }, recursive=True) }}"
-  when: sansible_kafka_aws_cluster_autodiscover_enabled
-
-- name: Export DNS hostname
-  become: yes
-  become_user: "{{ sansible_kafka_user }}"
-  lineinfile:
-    create: yes
-    dest: "/home/{{ sansible_kafka_user }}/etc/hostname"
-    line: "{{ sansible_kafka_aws_cluster_autodiscover_data_hostname }}"
-  when: sansible_kafka_aws_cluster_autodiscover_enabled
-
-- name: Export hosted zone ID from aws_cluster_autodiscover settings
-  become: yes
-  become_user: "{{ sansible_kafka_user }}"
-  lineinfile:
-    create: yes
-    dest: "/home/{{ sansible_kafka_user }}/etc/hostedZone"
-    line: "{{ sansible_kafka_aws_cluster_autodiscover_r53_zone_id }}"
-  when: sansible_kafka_aws_cluster_autodiscover_enabled
-
-- name: Export broker ID to local filesystem
-  become: yes
-  become_user: "{{ sansible_kafka_user }}"
-  lineinfile:
-    create: yes
-    dest: "/home/{{ sansible_kafka_user }}/etc/brokerId"
-    line: "{{ sansible_kafka_aws_cluster_autodiscover_data_hostname }}"
-  when: sansible_kafka_aws_cluster_autodiscover_enabled
-
 - name: Assigned ID EC2 fact hunt
   action: ec2_instance_metadata
   register: ec2_vars
@@ -93,24 +32,36 @@
 
 - name: Assigned ID set Broker ID
   set_fact:
-    sansible_kafka_aws_cluster_assigned_id: "{{ assigned_id_instance_tags.tags[sansible_kafka_aws_cluster_assigned_id_tag_name] }}"
+    sansible_kafka_server_properties: "{{ {} | combine(sansible_kafka_server_properties, {
+        'broker.id': assigned_id_instance_tags.tags[
+          sansible_kafka_aws_cluster_assigned_id_tag_name
+        ]
+      }) }}"
   when: ansible_ec2_instance_id is defined
     and sansible_kafka_aws_cluster_assigned_id_enabled
 
 - name: Grab local facts for looking up interfaces
-  action: setup
+  setup: {}
   register: local_facts
   when: sansible_kafka_interface_bind is not none
     or sansible_kafka_interface_advertise is not none
 
 - name: Set listen_address if interface bind set
   set_fact:
-    sansible_kafka_listen_address: "{{ local_facts.ansible_facts['ansible_' + sansible_kafka_interface_bind]['ipv4']['address'] }}"
+    sansible_kafka_server_properties: "{{ {} | combine(sansible_kafka_server_properties, {
+        'listeners': 'PLAINTEXT://' + local_facts.ansible_facts[
+          'ansible_' + sansible_kafka_interface_bind
+        ]['ipv4']['address'] + ':' + sansible_kafka_port|string
+      }) }}"
   when: sansible_kafka_interface_bind is not none
 
 - name: Set advertised_host_name if interface advertise set
   set_fact:
-    sansible_kafka_advertised_host_name: "{{ local_facts.ansible_facts['ansible_' + sansible_kafka_interface_advertise]['ipv4']['address'] }}"
+    sansible_kafka_server_properties: "{{ {} | combine(sansible_kafka_server_properties, {
+        'advertised.listeners': 'PLAINTEXT://' + local_facts.ansible_facts[
+          'ansible_' + sansible_kafka_interface_advertise
+        ]['ipv4']['address'] + ':' + sansible_kafka_port|string
+      }) }}"
   when: sansible_kafka_interface_advertise is not none
 
 - name: Setup environment config
@@ -140,6 +91,11 @@
     dest: "/home/{{ sansible_kafka_user }}/etc/server.properties"
     mode: 0640
     src: server.properties.j2
+  vars:
+    server_properties: "{{ {} | combine(
+        sansible_kafka_server_properties_defaults,
+        sansible_kafka_server_properties
+      ) }}"
   notify:
     - restart kafka
 
@@ -158,43 +114,3 @@
     port: "{{ sansible_kafka_port }}"
     state: started
     timeout: "{{ sansible_kafka_wait_for_kafka_port }}"
-
-- name: Copy Kafka maintenance scripts
-  become: yes
-  become_user: "{{ sansible_kafka_user }}"
-  copy:
-    src: "{{ item }}"
-    mode: 0750
-    dest: "/home/{{ sansible_kafka_user }}/bin/{{ item }}"
-  with_items:
-    - kafka_maintenance_at_stop
-    - kafka_maintenance_at_start
-    - remove_dns_record
-  when: sansible_kafka_aws_cluster_autodiscover_enabled
-
-- name: Run Kafka maintenance script at start
-  become: yes
-  become_user: "{{ sansible_kafka_user }}"
-  command: "/home/{{ sansible_kafka_user }}/bin/kafka_maintenance_at_start"
-  when: sansible_kafka_aws_cluster_autodiscover_enabled
-
-- name: Copy Kafka stop script
-  become: yes
-  copy:
-    dest: "/etc/init.d"
-    mode: 0755
-    src: "stop_kafka"
-  when: sansible_kafka_aws_cluster_autodiscover_enabled
-
-- name: Add Kafka stop script to system runlevels
-  become: yes
-  file:
-    src: "/etc/init.d/stop_kafka"
-    dest: "/etc/{{ item }}/K10kafka-controlled-shutdown"
-    state: link
-    force: yes
-  with_items:
-    - "rc0.d"
-    - "rc1.d"
-    - "rc6.d"
-  when: sansible_kafka_aws_cluster_autodiscover_enabled

@@ -15,6 +15,23 @@ provisioner:
   name: ansible
   lint:
     name: ansible-lint
+  inventory:
+    host_vars:
+      # currenlty there is no support for netplan, and no interfaces facts
+      sansible_kafka-xenial:
+        sansible_kafka_server_properties:
+          listeners: "PLAINTEXT://127.0.0.1:9092"
+          broker.id: 11
+      sansible_kafka-bionic:
+        sansible_kafka_server_properties:
+          listeners: "PLAINTEXT://127.0.0.1:9092"
+          broker.id: 11
+      # trusty is using good old ifconfig
+      sansible_kafka-trusty:
+        sansible_kafka_server_properties:
+          broker.id: 11
+        sansible_kafka_interface_bind: lo
+        sansible_kafka_interface_advertise: lo
 
 lint:
   name: yamllint
