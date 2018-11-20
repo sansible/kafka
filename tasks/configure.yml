@@ -11,7 +11,7 @@
   when: ansible_virtualization_type != 'docker'
 
 - name: Assigned ID EC2 fact hunt
-  action: ec2_instance_metadata
+  action: ec2_metadata_facts
   register: ec2_vars
   until: ec2_vars | success
   retries: 3
