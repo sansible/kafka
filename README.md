@@ -9,22 +9,21 @@ Develop: [![Build Status](https://travis-ci.org/sansible/kafka.svg?branch=develo
 
 This roles installs Apache Kafka server.
 
-For more information about Kafka please visit
-[zookeeper.apache.org/](http://kafka.apache.org/).
+For more information about Kafka please visit [kafka.apache.org].
 
 
 
 ## Installation and Dependencies
 
 This role will install `sansible.users_and_groups` for managing `kafka`
-user.
+user, and `sansible.java` for installing Java.
 
 To install run `ansible-galaxy install sansible.kafka` or add this to your
 `roles.yml`
 
 ```YAML
 - name: sansible.kafka
-  version: v2.0
+  version: v3.1.0-latest
 ```
 
 and run `ansible-galaxy install -p ./roles -r roles.yml`
@@ -80,6 +79,8 @@ This role uses two tags: **build** and **configure**
         - my.zookeeper.host
 ```
 
+Start Kafka with NewRelic Java agent (You need to install NewRelic agent separately)
+
 ```YAML
 - name: Install Kafka with NewRelic integration
   hosts: sandbox
@@ -98,6 +99,62 @@ This role uses two tags: **build** and **configure**
       sansible_kafka_environment_vars:
         - "NEWRELIC_OPTS=\"-javaagent:/home/{{ sansible_kafka_user }}/newrelic/newrelic.jar\""
         - "export KAFKA_OPTS=\"${KAFKA_OPTS} ${NEWRELIC_OPTS}\""
+```
+
+If you want to customise any Kafka config.
+
+> For list of all option please refer to [Kafka documentation] "Broker Configs"
+  section.
+
+```YAML
+- name: Install Kafka with NewRelic integration
+  hosts: sandbox
+
+  pre_tasks:
+    - name: Update apt
+      become: yes
+      apt:
+        cache_valid_time: 1800
+        update_cache: yes
+      tags:
+        - build
+
+  roles:
+    - name: sansible.kafka
+      sansible_kafka_server_properties:
+        broker.id: "{{ my_kafka_config.id }}"
+        log.dirs: "{{ my_kafka_config.data_dir }}"
+        offsets.topic.replication.factor: 1
+        transaction.state.log.replication.factor: 1
+```
+
+If you want to set some global defaults, and then override them per environment
+
+```YAML
+- name: Install Kafka with NewRelic integration
+  hosts: sandbox
+
+  vars:
+    sansible_kafka_server_properties_defaults:
+      broker.id: "{{ my_kafka_config.id }}"
+      log.dirs: "{{ my_kafka_config.data_dir }}"
+      offsets.topic.replication.factor: 1
+      transaction.state.log.replication.factor: 1
+
+  pre_tasks:
+    - name: Update apt
+      become: yes
+      apt:
+        cache_valid_time: 1800
+        update_cache: yes
+      tags:
+        - build
+
+  roles:
+    - name: sansible.kafka
+      sansible_kafka_server_properties:
+        offsets.topic.replication.factor: 3
+        transaction.state.log.replication.factor: 3
 ```
 
 If you just want to test Kafka service build both Zookeeper and Kafka on the
@@ -120,3 +177,7 @@ same machine.
     - name: sansible.zookeeper
     - name: sansible.kafka
 ```
+
+
+[Kafka documentation]: [https://kafka.apache.org/documentation/]
+[kafka.apache.org]: [http://kafka.apache.org/]
