@@ -89,15 +89,15 @@
   notify:
     - restart kafka
 
+- name: Flush handlers to ensure Kafka is up to date
+  meta: flush_handlers
+
 - name: Ensure Kafka is running
   become: yes
   service:
     enabled: yes
     name: kafka
     state: started
-
-- name: Flush handlers to ensure Kafka is up to date
-  meta: flush_handlers
 
 - name: Wait for Kafka port
   wait_for:
