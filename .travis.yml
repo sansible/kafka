@@ -1,7 +1,7 @@
 ---
 
 group: stable
-dist: trusty
+dist: xenial
 sudo: required
 
 language: python
@@ -15,10 +15,9 @@ branches:
     - master
 
 env:
-  - ANSIBLE_INSTALL_VERSION=2.4.6.0
-  - ANSIBLE_INSTALL_VERSION=2.5.11
-  - ANSIBLE_INSTALL_VERSION=2.6.7
-  - ANSIBLE_INSTALL_VERSION=2.7.1
+  - ANSIBLE_INSTALL_VERSION=2.5.14
+  - ANSIBLE_INSTALL_VERSION=2.6.13
+  - ANSIBLE_INSTALL_VERSION=2.7.7
 
 services:
   - docker
@@ -28,7 +27,7 @@ before_install:
   - sudo apt-get install -o Dpkg::Options::="--force-confold" --force-yes -y docker-ce
 
 install:
-  - make .venv
+  - make deps
 
 script:
   - make test

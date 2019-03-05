@@ -13,9 +13,8 @@
     - name: Install apt-transport-https, lsb-release, net-tools
       become: yes
       apt:
-        name: "{{ item }}"
+        name:
+          - apt-transport-https
+          - lsb-release
+          - net-tools
         update_cache: yes
-      with_items:
-        - apt-transport-https
-        - lsb-release
-        - net-tools
