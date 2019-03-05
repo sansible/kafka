@@ -8,7 +8,9 @@
     line: "127.0.0.1 {{ ansible_hostname }}"
   notify:
     - restart kafka
-  when: ansible_virtualization_type != 'docker'
+  when:
+    - ansible_virtualization_type != 'docker'
+    - sansible_kafka_fix_hostname | bool
 
 - name: Assigned ID EC2 fact hunt
   action: ec2_metadata_facts

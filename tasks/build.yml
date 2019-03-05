@@ -51,17 +51,34 @@
     src: "/home/{{ sansible_kafka_user }}/kafka/config"
     state: link
 
-- name: Create Kafka service
+- name: Create Kafka service for SysV
   become: yes
   template:
     dest: /etc/init.d/kafka
     owner: root
     mode: 0755
     src: kafka_sysv.j2
+  when: ansible_service_mgr != "systemd"
 
-- name: Create kafka startup links
+- name: Add Kafka SystemD script
   become: yes
-  command: update-rc.d kafka defaults
-  args:
-    creates: "/etc/rc0.d/K??kafka"
-  when: ansible_distribution_release == "bionic"
+  template:
+    dest: /etc/systemd/system/kafka.service
+    mode: u+rw,g+rw,o+r
+    src: kafka.service.j2
+  when: ansible_service_mgr == "systemd"
+
+- name: Ensure Kafka is enabled for SysV
+  become: yes
+  service:
+    name: kafka
+    enabled: yes
+  when: ansible_service_mgr != "systemd"
+
+- name: Ensure Kafka is enabled for SystemD
+  become: yes
+  systemd:
+    daemon_reload: yes
+    name: kafka
+    enabled: yes
+  when: ansible_service_mgr == "systemd"
