@@ -1,15 +1,5 @@
 ---
 
-# Needed to ensure some services start properly
-- name: Set hostname
-  become: yes
-  lineinfile:
-    dest: /etc/hosts
-    line: "127.0.0.1 {{ ansible_hostname }}"
-  notify:
-    - restart kafka
-  when: ansible_virtualization_type != 'docker'
-
 - name: Assigned ID EC2 fact hunt
   action: ec2_metadata_facts
   register: ec2_vars

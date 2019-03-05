@@ -11,5 +11,6 @@
 
   roles:
     - role: sansible.zookeeper
+      sansible_zookeeper_version: 3.4.13
 
     - role: kafka

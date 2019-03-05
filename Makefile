@@ -1,13 +1,23 @@
-ANSIBLE_INSTALL_VERSION ?= 2.6.7
+ANSIBLE_INSTALL_VERSION ?= 2.7.7
 PATH := $(PWD)/.venv_ansible$(ANSIBLE_INSTALL_VERSION)/bin:$(shell printenv PATH)
 SHELL := env PATH=$(PATH) /bin/bash
+
+ifeq ($(SCENARIO), all)
+SCENARIO_OPT = "--all"
+else
+SCENARIO_OPT = "--scenario-name=$(SCENARIO)"
+endif
 
 .DEFAULT_GOAL := help
 .PHONY: all clean destroy help test
 
 
+
 ## Make deps, test
 all: deps test
+
+## Setup dependencies
+deps: .venv_ansible$(ANSIBLE_INSTALL_VERSION)
 
 
 ## Activate the virtualenv
@@ -44,10 +54,10 @@ login_%: .venv_ansible$(ANSIBLE_INSTALL_VERSION)
 
 ## Run 'molecule test --destroy=never' (run 'make destroy' to destroy containers)
 test: .venv_ansible$(ANSIBLE_INSTALL_VERSION)
-	@.venv_ansible$(ANSIBLE_INSTALL_VERSION)/bin/molecule test --destroy=never
+	@.venv_ansible$(ANSIBLE_INSTALL_VERSION)/bin/molecule test $(SCENARIO_OPT) --destroy=never
 
 
-# shortcut for creating virtualenv
+# shortcut for creating venv
 .venv: .venv_ansible$(ANSIBLE_INSTALL_VERSION)
 
 
@@ -72,6 +82,7 @@ watch: .venv_ansible$(ANSIBLE_INSTALL_VERSION)
 	done
 
 
+## Print this help
 help:
 	@awk -v skip=1 \
 		'/^##/ { sub(/^[#[:blank:]]*/, "", $$0); doc_h=$$0; doc=""; skip=0; next } \
