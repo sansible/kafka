@@ -36,12 +36,20 @@
   when: sansible_kafka_interface_bind is not none
     or sansible_kafka_interface_advertise is not none
 
+- name: Set default sansible_kafka_listen_address fact
+  set_fact:
+    sansible_kafka_listen_address: 127.0.0.1
+  when: sansible_kafka_interface_bind is none
+
+- name: Set sansible_kafka_listen_address fact if interface bind set
+  set_fact:
+    sansible_kafka_listen_address: "{{ local_facts.ansible_facts['ansible_' + sansible_kafka_interface_bind]['ipv4']['address'] }}"
+  when: sansible_kafka_interface_bind is not none
+
 - name: Set listen_address if interface bind set
   set_fact:
     sansible_kafka_server_properties: "{{ {} | combine(sansible_kafka_server_properties, {
-        'listeners': 'PLAINTEXT://' + local_facts.ansible_facts[
-          'ansible_' + sansible_kafka_interface_bind
-        ]['ipv4']['address'] + ':' + sansible_kafka_port|string
+        'listeners': 'PLAINTEXT://' + sansible_kafka_listen_address + ':' + sansible_kafka_port|string
       }) }}"
   when: sansible_kafka_interface_bind is not none
 
@@ -101,6 +109,7 @@
 
 - name: Wait for Kafka port
   wait_for:
+    host: "{{ sansible_kafka_listen_address }}"
     port: "{{ sansible_kafka_port }}"
     state: started
     timeout: "{{ sansible_kafka_wait_for_kafka_port }}"
