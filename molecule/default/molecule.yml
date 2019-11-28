@@ -4,8 +4,6 @@ driver:
   name: docker
 
 platforms:
-  - name: sansible_kafka-trusty
-    image: ubuntu:trusty
   - name: sansible_kafka-xenial
     image: solita/ubuntu-systemd:xenial
     command: /sbin/init
@@ -40,12 +38,6 @@ provisioner:
         sansible_kafka_server_properties:
           listeners: "PLAINTEXT://127.0.0.1:9092"
           broker.id: 11
-      # trusty is using good old ifconfig
-      sansible_kafka-trusty:
-        sansible_kafka_server_properties:
-          broker.id: 11
-        sansible_kafka_interface_bind: lo
-        sansible_kafka_interface_advertise: lo
 
 lint:
   name: yamllint
