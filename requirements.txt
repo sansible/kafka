@@ -1,4 +1,2 @@
 docker-py==1.10.6
-molecule==2.19.0
-# there is a bug with cache in latest 3.10.0
-pytest==3.9.3
+molecule==2.22

@@ -22,8 +22,10 @@
   become: yes
   become_user: "{{ sansible_kafka_user }}"
   get_url:
-    dest: "/home/{{ sansible_kafka_user }}/tmp/kafka_{{ sansible_kafka_version_scala }}-{{ sansible_kafka_version_kafka }}.tgz"
-    url: "{{ sansible_kafka_apache_mirror }}/kafka/{{ sansible_kafka_version_kafka }}/kafka_{{ sansible_kafka_version_scala }}-{{ sansible_kafka_version_kafka }}.tgz"
+    dest: "/home/{{ sansible_kafka_user }}/tmp/\
+      kafka_{{ sansible_kafka_version_scala }}-{{ sansible_kafka_version_kafka }}.tgz"
+    url: "{{ sansible_kafka_apache_mirror }}/kafka/{{ sansible_kafka_version_kafka }}/\
+      kafka_{{ sansible_kafka_version_scala }}-{{ sansible_kafka_version_kafka }}.tgz"
 
 - name: Uncompress the kafka tar
   become: yes
