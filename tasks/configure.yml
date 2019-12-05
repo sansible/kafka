@@ -113,3 +113,8 @@
     port: "{{ sansible_kafka_port }}"
     state: started
     timeout: "{{ sansible_kafka_wait_for_kafka_port }}"
+  loop:
+    - Initial check
+    - Second check
+  loop_control:
+    pause: "{{ sansible_kafka_wait_for_delay }}"
