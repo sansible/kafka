@@ -4,8 +4,8 @@ galaxy_info:
   author: sansible
   description: "Install Kafka server."
   license: MIT
-  min_ansible_version: 2.5
-  min_ansible_container_version: 2.5
+  min_ansible_version: 2.7
+  min_ansible_container_version: 2.7
   platforms:
     - name: Ubuntu
       versions:

@@ -3,7 +3,7 @@
 - name: Assigned ID EC2 fact hunt
   action: ec2_metadata_facts
   register: ec2_vars
-  until: ec2_vars | success
+  until: ec2_vars is successful
   retries: 3
   delay: 5
   when: sansible_kafka_aws_cluster_assigned_id_enabled
@@ -18,7 +18,7 @@
     and sansible_kafka_aws_cluster_assigned_id_enabled
   retries: 3
   delay: 5
-  until: assigned_id_instance_tags | success
+  until: assigned_id_instance_tags is successful
 
 - name: Assigned ID set Broker ID
   set_fact:

@@ -1,7 +1,7 @@
 ---
 
 group: stable
-dist: xenial
+dist: bionic
 sudo: required
 
 language: python
