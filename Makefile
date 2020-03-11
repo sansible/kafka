@@ -70,7 +70,6 @@ test: .venv_ansible$(ANSIBLE_INSTALL_VERSION)
 	virtualenv .venv_ansible$(ANSIBLE_INSTALL_VERSION)
 	.venv_ansible$(ANSIBLE_INSTALL_VERSION)/bin/pip install -r requirements.txt --ignore-installed
 	.venv_ansible$(ANSIBLE_INSTALL_VERSION)/bin/pip install ansible==$(ANSIBLE_INSTALL_VERSION)
-	virtualenv --relocatable .venv_ansible$(ANSIBLE_INSTALL_VERSION)
 	@echo -e "\033[0;32mINFO: Run 'make activate' to activate the virtualenv for this shell\033[0m"
 
 
