@@ -1,2 +1,5 @@
-docker-py==1.10.6
-molecule==2.22
+ansible-lint
+docker
+flake8
+molecule
+testinfra

@@ -1,6 +1,7 @@
 ---
 
 sansible_kafka_apache_mirror: https://archive.apache.org/dist/
+sansible_kafka_authorizer_log_level: ERROR
 sansible_kafka_aws_cluster_assigned_id_enabled: no
 sansible_kafka_aws_cluster_assigned_id_tag_name: instanceindex
 sansible_kafka_conf_dir: /home/kafka/etc

@@ -1,5 +1,6 @@
 ## IDEs, editors, ...
 .\#*
+.vscode
 .DS_Store
 .idea
 .project
