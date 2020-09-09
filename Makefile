@@ -1,20 +1,20 @@
-ANSIBLE_INSTALL_VERSION ?= 2.9.1
+ANSIBLE_INSTALL_VERSION ?= 2.9.13
 PATH := $(PWD)/.venv_ansible$(ANSIBLE_INSTALL_VERSION)/bin:$(shell printenv PATH)
 SHELL := env PATH=$(PATH) /bin/bash
 
 ifeq ($(SCENARIO), all)
-SCENARIO_OPT = "--all"
+SCENARIO_OPT =
 else
-SCENARIO_OPT = "--scenario-name=$(SCENARIO)"
+SCENARIO_OPT = --scenario-name=$(SCENARIO)
 endif
 
 .DEFAULT_GOAL := help
 .PHONY: all clean destroy help test
 
 
-
 ## Make deps, test
 all: deps test
+
 
 ## Setup dependencies
 deps: .venv_ansible$(ANSIBLE_INSTALL_VERSION)

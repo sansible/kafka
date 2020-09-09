@@ -120,3 +120,9 @@ same machine.
     - name: sansible.zookeeper
     - name: sansible.kafka
 ```
+
+Logging access denied. These access logs will be placed in `{{ sansible_kafka_log_dir }}/kafka-authorizer.log`.
+```YAML
+- role: sansible.kafka
+sansible_kafka_authorizer_log_level: INFO
+```
